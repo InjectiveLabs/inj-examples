@@ -1,4 +1,4 @@
-TEMPLATES := foundry hardhat
+TEMPLATES := foundry hardhat react
 
 .PHONY: list $(TEMPLATES)
 
@@ -6,10 +6,12 @@ list:
 	@echo "Available templates:"
 	@echo "  foundry  - Foundry EVM smart contract project"
 	@echo "  hardhat  - Hardhat EVM smart contract project"
+	@echo "  react    - React dApp with Injective smart contracts"
 	@echo ""
 	@echo "Usage:"
 	@echo "  make foundry ~/my-project"
 	@echo "  make hardhat ~/my-project"
+	@echo "  make react ~/my-project"
 
 $(TEMPLATES):
 ifeq ($(word 2,$(MAKECMDGOALS)),)

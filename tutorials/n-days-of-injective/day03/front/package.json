@@ -1,0 +1,31 @@
+{
+  "name": "n-days-of-injective--03-dapp",
+  "private": true,
+  "version": "0.0.0",
+  "description": "dApp example for N days of Injective",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/injective-dev/n-days-of-injective.git"
+  },
+  "keywords": [
+    "injective",
+    "evm",
+    "tutorial"
+  ],
+  "author": "bguiz",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/injective-dev/n-days-of-injective/issues"
+  },
+  "homepage": "https://github.com/injective-dev/n-days-of-injective#readme",
+  "dependencies": {
+    "dotenv": "17.2.3",
+    "express": "5.2.1"
+  }
+}

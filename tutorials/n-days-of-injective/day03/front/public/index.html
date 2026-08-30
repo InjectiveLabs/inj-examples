@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Counter dApp</title>
+    <link rel="stylesheet" href="/index.css">
+</head>
+<body class="main">
+    <h1>Counter dApp</h1>
+    <div>
+        <h2>Wallet</h2>
+        <div>
+            <button id="btnWallet">Wallet</button>
+        </div>
+        <div>
+            <p id="txtWallet">&nbsp;</p>
+        </div>
+    </div>
+    <div>
+        <h2>Read interaction</h2>
+        <div>
+            <button id="btnRead">Read</button>
+        </div>
+        <div>
+            <p id="txtRead">&nbsp;</p>
+        </div>
+    </div>
+    <div>
+        <h2>Write interaction</h2>
+        <div>
+            <button id="btnWrite">Write</button>
+        </div>
+        <div>
+            <p id="txtWrite">&nbsp;</p>
+        </div>
+    </div>
+    <script type="importmap">
+        {
+            "imports": {
+                "viem": "https://esm.sh/viem",
+                "viem/chains": "https://esm.sh/viem/chains"
+            }
+        }
+    </script>
+    <script type="module" src="/index.js"></script>
+</body>
+</html>

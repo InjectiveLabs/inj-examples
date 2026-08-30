@@ -1,0 +1,22 @@
+{
+  "name": "spotmarket",
+  "version": "1.0.0",
+  "main": "index.js",
+  "module": "true",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "fetch-spot": "ts-node src/fetch.ts",
+    "place-order": "ts-node src/placeorder.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@injectivelabs/sdk-ts": "^1.17.2",
+    "dotenv": "^17.2.3"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

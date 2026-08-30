@@ -1,0 +1,24 @@
+{
+  "name": "sdk",
+  "version": "1.0.0",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "module": "true",
+  "dependencies": {
+    "@injectivelabs/sdk-ts": "^1.16.38",
+    "@injectivelabs/wallet-strategy": "^1.16.38",
+    "dotenv": "^17.2.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "query-balance": "ts-node src/query.ts",
+    "send-inj": "ts-node src/transact.ts"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

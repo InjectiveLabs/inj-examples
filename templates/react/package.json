@@ -1,0 +1,31 @@
+{
+  "name": "dapp-react-temp",
+  "version": "1.0.0",
+  "description": "Injective dApp React Template — USDC payments + MCP integration",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "contracts"
+  ],
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "compile": "cd contracts && npm run compile",
+    "test": "cd contracts && npm run test",
+    "deploy:testnet": "cd contracts && npm run deploy:testnet",
+    "deploy:mainnet": "cd contracts && npm run deploy:mainnet",
+    "mcp:setup": "cd mcp && bash setup.sh",
+    "install:all": "npm install --workspace=frontend && npm install --workspace=contracts"
+  },
+  "keywords": [
+    "injective",
+    "dapp",
+    "react",
+    "usdc",
+    "mcp",
+    "web3",
+    "evm"
+  ],
+  "author": "Chuhan Jin",
+  "license": "MIT"
+}
