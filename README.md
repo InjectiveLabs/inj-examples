@@ -64,6 +64,7 @@ Reference implementations and demos.
 
 | Example | Description |
 |---------|-------------|
+| [`precompiles`](examples/precompiles) | Injective precompile integration — Bank ERC-20 token, all precompile interfaces |
 | [`usdc`](examples/usdc) | USDC CCTP cross-chain transfer demo |
 
 ## Tutorials

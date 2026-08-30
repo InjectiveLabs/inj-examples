@@ -1,0 +1,7 @@
+.env
+cache/
+out/
+broadcast/
+lib/
+foundry.lock
+local-dev/data/

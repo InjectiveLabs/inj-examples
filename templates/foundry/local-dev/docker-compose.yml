@@ -1,0 +1,115 @@
+services:
+
+  # ---------- Injective node ----------
+  injectived:
+    image: injectivelabs/injective-core:latest
+    container_name: injective-local
+    ports:
+      - "8545:8545"    # EVM JSON-RPC
+      - "8546:8546"    # EVM WebSocket
+      - "26657:26657"  # Tendermint RPC
+    volumes:
+      - ./data/.injectived:/root/.injectived
+    command:
+      - /bin/sh
+      - -c
+      - |
+        ulimit -n 120000
+        yes 12345678 | injectived \
+          --log-level info \
+          --rpc.laddr "tcp://0.0.0.0:26657" \
+          --json-rpc.address "0.0.0.0:8545" \
+          --json-rpc.ws-address "0.0.0.0:8546" \
+          --json-rpc.api "eth,web3,net,txpool,debug,personal,inj" \
+          --json-rpc.enable=true \
+          --json-rpc.allow-unprotected-txs=true \
+          --json-rpc.txfee-cap=50 \
+          --home /root/.injectived \
+          start
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf -X POST -H 'Content-Type: application/json' -d '{\"jsonrpc\":\"2.0\",\"method\":\"eth_blockNumber\",\"params\":[],\"id\":1}' http://localhost:8545 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  # ---------- Block Explorer (Blockscout) ----------
+  explorer-db:
+    image: postgres:14
+    container_name: explorer-db
+    environment:
+      POSTGRES_DB: blockscout
+      POSTGRES_USER: blockscout
+      POSTGRES_PASSWORD: blockscout
+    volumes:
+      - explorer-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U blockscout"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  explorer-backend:
+    image: blockscout/blockscout:latest
+    container_name: explorer-backend
+    restart: unless-stopped
+    depends_on:
+      injectived:
+        condition: service_healthy
+      explorer-db:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command:
+      - /bin/sh
+      - -c
+      - |
+        bin/blockscout eval "Elixir.Explorer.ReleaseTasks.create_and_migrate()"
+        bin/blockscout start
+    environment:
+      DATABASE_URL: postgresql://blockscout:blockscout@explorer-db:5432/blockscout?ssl=false
+      SECRET_KEY_BASE: "56NtB48ear7+wMSf0IQuWDAAazhpb31qyc7GiyspBP2vh7t5zlCsF5QDv76chXeN"
+      ETHEREUM_JSONRPC_VARIANT: geth
+      ETHEREUM_JSONRPC_HTTP_URL: http://injectived:8545/
+      ETHEREUM_JSONRPC_WS_URL: ws://injectived:8546/
+      ETHEREUM_JSONRPC_TRACE_URL: http://injectived:8545/
+      ETHEREUM_JSONRPC_TRANSPORT: http
+      CHAIN_ID: "1776"
+      COIN: INJ
+      COIN_NAME: Injective
+      NETWORK: "Injective Local"
+      SUBNETWORK: "Local Dev"
+      PORT: "4000"
+      POOL_SIZE: "20"
+      POOL_SIZE_API: "10"
+      ECTO_SSL_MODE: disable
+      API_V2_ENABLED: "true"
+      DISABLE_EXCHANGE_RATES: "true"
+      DISABLE_MARKET: "true"
+      INDEXER_DISABLE_PENDING_TRANSACTIONS_FETCHER: "true"
+      INDEXER_DISABLE_INTERNAL_TRANSACTIONS_FETCHER: "true"
+    ports:
+      - "4000:4000"
+
+  explorer-frontend:
+    image: ghcr.io/blockscout/frontend:latest
+    container_name: explorer-frontend
+    restart: unless-stopped
+    depends_on:
+      - explorer-backend
+    environment:
+      NEXT_PUBLIC_APP_HOST: localhost
+      NEXT_PUBLIC_API_HOST: localhost
+      NEXT_PUBLIC_API_PORT: "4000"
+      NEXT_PUBLIC_API_PROTOCOL: http
+      NEXT_PUBLIC_NETWORK_NAME: "Injective Local"
+      NEXT_PUBLIC_NETWORK_SHORT_NAME: "INJ"
+      NEXT_PUBLIC_NETWORK_ID: "1776"
+      NEXT_PUBLIC_NETWORK_CURRENCY_NAME: "Injective"
+      NEXT_PUBLIC_NETWORK_CURRENCY_SYMBOL: "INJ"
+      NEXT_PUBLIC_NETWORK_CURRENCY_DECIMALS: "18"
+      NEXT_PUBLIC_IS_TESTNET: "true"
+    ports:
+      - "3000:3000"
+
+volumes:
+  explorer-db-data:
