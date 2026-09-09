@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "USDC CCTP Demo dApp for Injective EVM Testnet - by Ninja Labs HQ",
+  "description": "USDC CCTP Demo dApp for Injective EVM Testnet",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

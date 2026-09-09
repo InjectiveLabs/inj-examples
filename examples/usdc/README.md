@@ -1,8 +1,6 @@
 # USDC CCTP Demo — Injective EVM Testnet ↔ Ethereum Sepolia
 
-> A developer education dApp built by **Ninja Labs HQ** demonstrating how to use Circle's Cross-Chain Transfer Protocol (CCTP) to move USDC natively across blockchains — in **both directions** between Injective EVM Testnet and Ethereum Sepolia.
-
-![Ninja Labs HQ](./ninja-labs-logo.jpg)
+> A developer education dApp demonstrating how to use Circle's Cross-Chain Transfer Protocol (CCTP) to move USDC natively across blockchains — in **both directions** between Injective EVM Testnet and Ethereum Sepolia.
 
 ---
 
@@ -11,7 +9,7 @@
 This repo ships a packaged [OpenClaw](https://openclaw.ai) skill that gives AI agents working knowledge of CCTP on Injective — contract addresses, parameter logic, attestation polling, and common failure modes.
 
 ```bash
-openclaw skill install https://github.com/Ninja-Labs-Devs/USDC-CCTP-Template/raw/main/cctp-injective.skill
+openclaw skill install https://github.com/InjectiveLabs/inj-examples/raw/main/examples/usdc/cctp-injective.skill
 ```
 
 After install, the skill is auto-triggered when the agent is asked to build, debug, or reason about CCTP transfers involving Injective. See [`skill/SKILL.md`](./skill/SKILL.md) for the full source.
@@ -109,8 +107,8 @@ Select the source chain (Injective or Ethereum Sepolia) and request testnet USDC
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/Ninja-Labs-Devs/USDC-CCTP-Template.git
-cd USDC-CCTP-Template
+git clone https://github.com/InjectiveLabs/inj-examples.git
+cd inj-examples/examples/usdc
 ```
 
 ### 2. Install dependencies
@@ -355,4 +353,4 @@ For additional troubleshooting (wrong network, reverts, balance reads), see [`sk
 
 ## License
 
-MIT — built by [Ninja Labs HQ](https://x.com/NinjaLabsHQ)
+MIT — built by [Injective Labs](https://injective.com)

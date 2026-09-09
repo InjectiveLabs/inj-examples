@@ -8,7 +8,7 @@ export default {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
-        ninja: {
+        injective: {
           purple: '#6C63FF',
           'purple-dark': '#4F46E5',
           bg: '#0A0A0F',

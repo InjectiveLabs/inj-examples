@@ -1,0 +1,17 @@
+[profile.default]
+src = "src"
+test = "test"
+out = "out"
+libs = ["lib"]
+solc = "0.8.28"
+optimizer = true
+optimizer_runs = 200
+evm_version = "cancun"
+
+remappings = [
+  '@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/',
+]
+
+[rpc_endpoints]
+sepolia = "${SEPOLIA_RPC_URL}"
+injective-testnet = "${RPC_URL}"

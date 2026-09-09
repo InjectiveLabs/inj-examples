@@ -1,5 +1,4 @@
 import { useConnect } from 'wagmi'
-import ninjaLogo from '../../ninja-labs-logo.svg'
 
 export function ConnectWallet() {
   const { connect, connectors, isPending } = useConnect()
@@ -33,16 +32,6 @@ export function ConnectWallet() {
               </svg>
             </div>
           </div>
-        </div>
-
-        {/* Logo */}
-        <div className="flex justify-center mb-6">
-          <img
-            src={ninjaLogo}
-            alt="Ninja Labs HQ"
-            className="h-9 w-auto opacity-90"
-            style={{ filter: 'invert(1)' }}
-          />
         </div>
 
         <h1 className="text-3xl font-bold mb-3">

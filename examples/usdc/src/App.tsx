@@ -81,8 +81,8 @@ export default function App() {
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-[#A0A0B8] text-sm">
             Built by{' '}
-            <a href="https://x.com/NinjaLabsHQ" target="_blank" rel="noopener noreferrer" className="text-[#A78BFA] hover:text-white transition-colors">
-              Ninja Labs HQ
+            <a href="https://injective.com" target="_blank" rel="noopener noreferrer" className="text-[#A78BFA] hover:text-white transition-colors">
+              Injective Labs
             </a>
             {' '}· USDC CCTP Demo for Injective EVM Testnet
           </div>
@@ -91,7 +91,7 @@ export default function App() {
             <span>·</span>
             <a href="https://docs.injective.network/developers-defi/usdc-stablecoin" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Injective USDC Docs</a>
             <span>·</span>
-            <a href="https://github.com/Ninja-Labs-Devs/USDC-CCTP-Template" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">GitHub</a>
+            <a href="https://github.com/InjectiveLabs/inj-examples" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">GitHub</a>
           </div>
         </div>
       </footer>

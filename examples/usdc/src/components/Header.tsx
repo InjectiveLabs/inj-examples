@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain } from 'wagmi'
 import { injectiveEVMTestnet } from '../wagmi'
-import ninjaLogo from '../../ninja-labs-logo.svg'
 
 function truncateAddress(addr: string) {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`
@@ -56,7 +55,7 @@ export function Header() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-3">
-          <img src={ninjaLogo} alt="Ninja Labs HQ" className="h-8 w-auto" style={{ filter: 'invert(1)' }} />
+          <span className="text-white font-semibold text-lg">Injective</span>
           <div className="hidden sm:block h-5 w-px bg-[rgba(108,99,255,0.3)]" />
           <div className="hidden sm:block text-xs text-[#A0A0B8] font-medium tracking-widest uppercase">
             USDC CCTP Demo

@@ -1,0 +1,33 @@
+{
+  "messages": [
+    {
+      "@type": "/injective.tokenfactory.v1beta1.MsgSetDenomMetadata",
+      "sender": "inj10d07y265gmmuvt4z0w9aw880jnsr700jstypyt",
+      "metadata": {
+        "base": "peggy0xYOUR_ACME_CONTRACT_ADDRESS",
+        "name": "ACME Token",
+        "symbol": "ACME",
+        "display": "ACME",
+        "description": "ACME Token bridged from Ethereum via Peggy",
+        "decimals": 18,
+        "denom_units": [
+          {
+            "denom": "peggy0xYOUR_ACME_CONTRACT_ADDRESS",
+            "exponent": 0,
+            "aliases": []
+          },
+          {
+            "denom": "ACME",
+            "exponent": 18,
+            "aliases": ["ACME"]
+          }
+        ]
+      }
+    }
+  ],
+  "metadata": "",
+  "deposit": "100000000000000000000inj",
+  "title": "Set ACME token metadata",
+  "summary": "Set bank denom metadata for peggy0xYOUR_ACME_CONTRACT_ADDRESS so the MTS ERC20 contract returns correct name, symbol, and decimals.",
+  "expedited": true
+}
