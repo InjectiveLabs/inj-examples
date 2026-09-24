@@ -11,7 +11,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DATADIR="$SCRIPT_DIR/data"
 INJHOME="$DATADIR/.injectived"
-IMAGE="injectivelabs/injective-core:latest"
+IMAGE="${INJ_IMAGE:-injectivelabs/injective-core:v1.20.4}"
 
 if [ -d "$INJHOME" ]; then
   echo "Chain data already exists at $INJHOME"

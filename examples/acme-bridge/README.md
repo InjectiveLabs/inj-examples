@@ -218,6 +218,6 @@ Once your token is live on Injective with MTS, you can:
 | Peggy Bridge | https://docs.injective.network/developers-native/bridges/ethereum |
 | Token Metadata | https://docs.injective.network/developers/assets/token-metadata |
 | Testnet Proposals | https://docs.injective.network/developers/testnet-proposals |
-| Testnet Resources | https://chain-portal.injective.network/testnet |
+| Testnet Resources | https://chain.injective.network/testnet |
 | Injective Faucet | https://testnet.faucet.injective.network |
 | Blockscout (EVM Explorer) | https://testnet.blockscout.injective.network |

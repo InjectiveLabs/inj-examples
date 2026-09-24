@@ -1,6 +1,8 @@
 # Injective Precompiles Example
 
-Working example of integrating [Injective precompiles](https://docs.injective.network/developers-evm/precompiles) in a Foundry project. Includes all native precompile interfaces, a Bank precompile ERC-20 token (`InjectiveToken`), and the local development environment for testing.
+Working example of integrating [Injective precompiles](https://docs.injective.network/developers-evm/precompiles) in a Foundry project. Includes all native precompile interfaces (Bank, Exchange, Oracle, Staking, and the Swap precompile added in v1.20.4), a Bank precompile ERC-20 token (`InjectiveToken`), and the local development environment for testing.
+
+The local node (`local-dev/`) is pinned to `injectivelabs/injective-core:v1.20.4`, so every precompile up to and including Swap (`0x68`) is available at `localhost:8545`. Override with `INJ_IMAGE=...` when running `setup.sh`. Note the swap allowlist starts empty on a fresh chain (`SwapParams` defaults to enabled with no markets); launch a spot market and allowlist it via `MsgUpdateSwapParams` before swapping. See the focused [swap precompile example](../swap-precompile/) for the interface and quote/swap flow.
 
 This project was scaffolded from the [`foundry` template](../../templates/foundry/) and extended with precompile contracts.
 
