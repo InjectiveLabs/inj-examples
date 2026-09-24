@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Initialize a local Injective chain for EVM development.
-# Runs entirely inside Docker — no local injectived binary needed.
+# Runs entirely inside Docker, no local injectived binary needed.
 #
 # Modified from injective-core/setup.sh: only chain init, EVM config, and funded accounts.
 # Source: https://github.com/InjectiveLabs/injective-core/blob/master/setup.sh

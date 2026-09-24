@@ -18,7 +18,7 @@ cp .env.example .env
 # Build (compiles all contracts including precompile-based ones)
 make build
 
-# Run standard EVM tests (Counter only — precompile contracts need a real node)
+# Run standard EVM tests (Counter only, precompile contracts need a real node)
 make test
 
 # Start local Injective devnet
@@ -36,10 +36,10 @@ make local-deploy-token      # InjectiveToken (Bank precompile, via forge create
 
 | Contract | Type | Deploy with |
 |---|---|---|
-| `src/Counter.sol` | Standard EVM | `make local-deploy` — uses `forge script` via [`script/Deploy.s.sol`](script/Deploy.s.sol) |
-| `src/InjectiveToken.sol` | Bank precompile | `make local-deploy-token` — uses `forge create` (see [`script/Deploy.s.sol`](script/Deploy.s.sol) for why) |
+| `src/Counter.sol` | Standard EVM | `make local-deploy`, uses `forge script` via [`script/Deploy.s.sol`](script/Deploy.s.sol) |
+| `src/InjectiveToken.sol` | Bank precompile | `make local-deploy-token`, uses `forge create` (see [`script/Deploy.s.sol`](script/Deploy.s.sol) for why) |
 
-Standard EVM contracts go in `script/Deploy.s.sol` and deploy with `forge script`. Precompile contracts like `InjectiveToken` cannot use `forge script` because Foundry's in-memory EVM doesn't have Injective precompiles — they must use `forge create` which submits directly without simulation. See the comments in `Deploy.s.sol` for the exact command.
+Standard EVM contracts go in `script/Deploy.s.sol` and deploy with `forge script`. Precompile contracts like `InjectiveToken` cannot use `forge script` because Foundry's in-memory EVM doesn't have Injective precompiles, so they must use `forge create` which submits directly without simulation. See the comments in `Deploy.s.sol` for the exact command.
 
 ### Vendored Precompile Interfaces
 
@@ -51,6 +51,7 @@ All native Injective precompile interfaces are vendored in `vendor/injective/` a
 | `Exchange.sol` | `IExchangeModule` | `0x0000...0065` | Order book trading via [`x/exchange`](https://docs.injective.network/developers-evm/exchange-precompile) |
 | `Staking.sol` | `IStakingModule` | `0x0000...0066` | Validator staking via [`x/staking`](https://docs.injective.network/developers-evm/staking-precompile) |
 | `Oracle.sol` | `IOracleModule` | `0x0000...0067` | Price feeds via [`x/oracle`](https://docs.injective.network/developers-evm/oracle-precompile) |
+| `Swap.sol` | `ISwapModule` | `0x0000...0068` | Native spot swaps against the orderbook, added in v1.20.4. See the [swap precompile example](https://github.com/InjectiveLabs/inj-examples/tree/main/examples/swap-precompile) |
 
 Supporting files: `CosmosTypes.sol` (Cosmos.Coin struct), `ExchangeTypes.sol` (Exchange enums and fixed-point types).
 
@@ -62,11 +63,13 @@ To update vendored contracts to the latest upstream version:
 make vendor    # runs vendor/fetch.sh
 ```
 
+`Swap.sol` is not yet published in the upstream [solidity-contracts](https://github.com/InjectiveLabs/solidity-contracts) repo, so it is maintained locally and preserved by `fetch.sh` across re-vendors.
+
 ## Integration Guide
 
 ### How precompiles work
 
-Precompiles are contracts deployed at fixed addresses by the Injective chain itself. They expose native Cosmos module functionality to Solidity — you call them like any other contract, but the execution happens inside the chain's Go code rather than in the EVM.
+Precompiles are contracts deployed at fixed addresses by the Injective chain itself. They expose native Cosmos module functionality to Solidity. You call them like any other contract, but the execution happens inside the chain's Go code rather than in the EVM.
 
 ```solidity
 import {IBankModule} from "@injective/Bank.sol";
@@ -81,23 +84,23 @@ uint256 supply = BANK.totalSupply(address(myToken));
 
 Foundry's `forge script` simulates transactions in its built-in EVM before broadcasting. That EVM doesn't have Injective precompiles, so any call to a precompile address (like `0x64`) fails with "call to non-contract address".
 
-**Standard EVM contracts** (no precompile calls): use `forge script` — simulation works fine.
+**Standard EVM contracts** (no precompile calls): use `forge script`, since simulation works fine.
 
 ```bash
 make local-deploy          # uses forge script
 ```
 
-**Precompile contracts** (call Bank, Exchange, Oracle, or Staking): use `forge create` — it skips simulation and submits the transaction directly to the node.
+**Precompile contracts** (call Bank, Exchange, Oracle, or Staking): use `forge create`, which skips simulation and submits the transaction directly to the node.
 
 ```bash
 make local-deploy-token    # uses forge create
 ```
 
-The same applies to `forge test` — tests that call precompiles will fail in Foundry's EVM. Test precompile contracts against the local devnet or testnet instead.
+The same applies to `forge test`. Tests that call precompiles will fail in Foundry's EVM. Test precompile contracts against the local devnet or testnet instead.
 
 ### Building an ERC-20 with the Bank precompile
 
-The Bank precompile lets you create tokens that exist simultaneously as EVM ERC-20s and native Cosmos denoms. Balances are unified — no bridging between EVM and Cosmos.
+The Bank precompile lets you create tokens that exist simultaneously as EVM ERC-20s and native Cosmos denoms. Balances are unified, with no bridging between EVM and Cosmos.
 
 #### Step 1: Vendor the contracts
 
@@ -117,7 +120,7 @@ contract InjectiveToken is MintBurnBankERC20 {
     constructor()
         payable
         MintBurnBankERC20(
-            msg.sender,        // owner — can mint and burn
+            msg.sender,        // owner, can mint and burn
             "Injective Token",
             "INJT",
             18
@@ -147,9 +150,9 @@ forge create src/InjectiveToken.sol:InjectiveToken \
 Or use the Makefile target: `make local-deploy-token`
 
 Key flags:
-- `--legacy` — required on Injective (no EIP-1559)
-- `--value 1ether` — pays the 1 INJ denom creation fee
-- `--gas-price 160000000` — standard Injective minimum gas price
+- `--legacy`: required on Injective (no EIP-1559)
+- `--value 1ether`: pays the 1 INJ denom creation fee
+- `--gas-price 160000000`: standard Injective minimum gas price
 
 #### Step 4: Interact
 
@@ -166,7 +169,7 @@ cast send $TOKEN_ADDRESS "mint(address,uint256)" $RECIPIENT 10000000000000000000
 cast call $TOKEN_ADDRESS "balanceOf(address)" $RECIPIENT \
   --rpc-url http://localhost:8545
 
-# Check balance via Bank precompile (same result — balances are unified)
+# Check balance via Bank precompile (same result, balances are unified)
 cast call 0x0000000000000000000000000000000000000064 \
   "balanceOf(address,address)" $TOKEN_ADDRESS $RECIPIENT \
   --rpc-url http://localhost:8545
@@ -174,7 +177,7 @@ cast call 0x0000000000000000000000000000000000000064 \
 
 ### Using other precompiles
 
-#### Oracle — read price feeds
+#### Oracle: read price feeds
 
 ```solidity
 import {IOracleModule} from "@injective/Oracle.sol";
@@ -191,7 +194,7 @@ IOracleModule.PricePairState memory state = ORACLE.oraclePricePairState(12, "BTC
 
 Oracle type values: `2` = PriceFeed, `3` = Coinbase, `9` = Pyth, `11` = Provider, `12` = Stork, `13` = ChainlinkDataStreams.
 
-#### Exchange — on-chain order book
+#### Exchange: on-chain order book
 
 ```solidity
 import {IExchangeModule} from "@injective/Exchange.sol";
@@ -215,9 +218,9 @@ IExchangeModule.SpotOrder memory order = IExchangeModule.SpotOrder({
 EXCHANGE.createSpotLimitOrder(msg.sender, order);
 ```
 
-Exchange numeric fields use **API format** — human-readable values scaled by 18 decimals (e.g., `5250000000000000000` = 5.25).
+Exchange numeric fields use **API format**, human-readable values scaled by 18 decimals (e.g., `5250000000000000000` = 5.25).
 
-#### Staking — delegate and earn rewards
+#### Staking: delegate and earn rewards
 
 ```solidity
 import {IStakingModule} from "@injective/Staking.sol";
@@ -245,7 +248,7 @@ Cosmos.Coin[] memory rewards = STAKING.withdrawDelegatorRewards("injvaloper1..."
 make local-init      # pulls Docker image, initializes chain with pre-funded accounts
 ```
 
-Creates two dev accounts with 1000 INJ each. The script prints mnemonics — derive EVM private keys with `cast wallet private-key --mnemonic "..."` and set `PRIVATE_KEY` in `.env`.
+Creates two dev accounts with 1000 INJ each. The script prints mnemonics. Derive EVM private keys with `cast wallet private-key --mnemonic "..."` and set `PRIVATE_KEY` in `.env`.
 
 ### Run the devnet
 
@@ -288,7 +291,7 @@ make testnet-verify
 | Chain ID | `1439` | `1776` |
 | JSON-RPC | `https://sentry.json-rpc.testnet.injective.network/` | `https://sentry.evm-rpc.injective.network/` |
 | Explorer | `https://testnet.blockscout.injective.network/` | `https://blockscout.injective.network/` |
-| Faucet | `https://testnet.faucet.injective.network/` | — |
+| Faucet | `https://testnet.faucet.injective.network/` | n/a |
 
 ## License
 

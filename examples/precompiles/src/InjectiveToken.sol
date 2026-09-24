@@ -5,7 +5,7 @@ import {MintBurnBankERC20} from "@injective/MintBurnBankERC20.sol";
 
 /// @title InjectiveToken - ERC-20 backed by the Injective Bank precompile
 /// @notice This token exists as both a standard ERC-20 and a native Cosmos denom.
-///         Balances are unified across EVM and Core — no bridging needed.
+///         Balances are unified across EVM and Core, no bridging needed.
 /// @dev    Inherits MintBurnBankERC20 from InjectiveLabs/solidity-contracts.
 ///         The Bank precompile at 0x64 handles all mint/burn/transfer operations
 ///         through the native x/bank module.
@@ -16,7 +16,7 @@ contract InjectiveToken is MintBurnBankERC20 {
     constructor()
         payable
         MintBurnBankERC20(
-            msg.sender,     // owner — can mint and burn
+            msg.sender,     // owner, can mint and burn
             "Injective Token",
             "INJT",
             18

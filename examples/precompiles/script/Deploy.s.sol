@@ -8,7 +8,7 @@ import {Counter} from "../src/Counter.sol";
 /// Works with forge script's simulation.
 ///
 /// Contracts that call Injective precompiles (e.g. InjectiveToken) cannot be
-/// deployed with forge script — Foundry's EVM doesn't have precompiles.
+/// deployed with forge script because Foundry's EVM doesn't have precompiles.
 /// Use `forge create` instead:
 ///
 ///   forge create src/InjectiveToken.sol:InjectiveToken \
@@ -26,7 +26,7 @@ contract Deploy is Script {
         console.log("Counter:", address(counter));
 
         // Add standard EVM contracts here.
-        // Precompile contracts must use `forge create` — see comment above.
+        // Precompile contracts must use `forge create`, see comment above.
 
         vm.stopBroadcast();
     }

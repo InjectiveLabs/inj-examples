@@ -1,7 +1,7 @@
 -include .env
 export
 
-# Defaults — override via .env or shell
+# Defaults, override via .env or shell
 RPC_URL          ?= https://sentry.json-rpc.testnet.injective.network/
 VERIFIER_URL     ?= https://testnet.blockscout-api.injective.network/api/
 GAS_PRICE        ?= 160000000
@@ -86,7 +86,7 @@ local-deploy:
 
 # Deploy InjectiveToken (Bank precompile ERC-20).
 # Uses `forge create` instead of `forge script` because Foundry's in-memory EVM
-# doesn't have Injective precompiles — simulation would fail.
+# doesn't have Injective precompiles, so simulation would fail.
 # --value 1ether pays the 1 INJ denom creation fee.
 local-deploy-token:
 	@test -n "$(PRIVATE_KEY)" || (echo "Set PRIVATE_KEY in .env" && exit 1)
