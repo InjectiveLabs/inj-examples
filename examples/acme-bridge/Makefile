@@ -2,7 +2,7 @@
 export
 
 SEPOLIA_RPC_URL   ?= https://rpc.sepolia.org
-RPC_URL           ?= https://k8s.testnet.json-rpc.injective.network/
+RPC_URL           ?= https://sentry.json-rpc.testnet.injective.network/
 GAS_PRICE         ?= 160000000
 
 .PHONY: help build test deploy-sepolia check-balance bridge create-pair verify

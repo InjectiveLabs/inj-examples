@@ -169,7 +169,7 @@ Add Injective EVM Testnet to MetaMask:
 | Field | Value |
 |-------|-------|
 | Network name | Injective EVM Testnet |
-| RPC URL | `https://k8s.testnet.json-rpc.injective.network/` |
+| RPC URL | `https://sentry.json-rpc.testnet.injective.network/` |
 | Chain ID | `1439` |
 | Currency symbol | INJ |
 | Block explorer | `https://testnet.blockscout.injective.network/` |

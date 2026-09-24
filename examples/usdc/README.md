@@ -53,7 +53,7 @@ Switch directions using the **Direction Toggle** at the top of the CCTP Transfer
 
 **Network Details:**
 - Chain ID: `1439`
-- RPC: `https://k8s.testnet.json-rpc.injective.network/`
+- RPC: `https://sentry.json-rpc.testnet.injective.network/`
 - Explorer: https://testnet.blockscout.injective.network
 - CCTP Domain: `29`
 

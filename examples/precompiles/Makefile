@@ -2,7 +2,7 @@
 export
 
 # Defaults — override via .env or shell
-RPC_URL          ?= https://k8s.testnet.json-rpc.injective.network/
+RPC_URL          ?= https://sentry.json-rpc.testnet.injective.network/
 VERIFIER_URL     ?= https://testnet.blockscout-api.injective.network/api/
 GAS_PRICE        ?= 160000000
 GAS_LIMIT        ?= 2000000

@@ -8,5 +8,5 @@ optimizer_runs = 200
 evm_version = "cancun"
 
 [rpc_endpoints]
-injective-testnet = "https://k8s.testnet.json-rpc.injective.network/"
+injective-testnet = "https://sentry.json-rpc.testnet.injective.network/"
 injective-mainnet = "https://sentry.evm-rpc.injective.network/"

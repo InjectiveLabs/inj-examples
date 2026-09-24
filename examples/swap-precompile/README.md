@@ -37,20 +37,20 @@ cast call 0x0000000000000000000000000000000000000068 \
   0xaDC7bcB5d8fe053Ef19b4E0C861c262Af6e0db60 \
   "0x0611780ba69656949525013d947713300f56c37b6175e02f26bffa495c3208fe" \
   10000000 \
-  --rpc-url https://k8s.testnet.json-rpc.injective.network/
+  --rpc-url https://sentry.json-rpc.testnet.injective.network/
 ```
 
 ## Foundry limitation
 
 `forge script` and `forge test` simulate in a local EVM that has no Injective precompiles, so any code path touching `0x68` fails there with `call to non-contract address`. Use `cast` against a real node (as the Makefile does), or deploy contracts and drive them with transactions. This applies to all Injective precompiles, not just swap.
 
-For fully local testing, the [precompiles example's local-dev setup](../precompiles/local-dev/) runs a real Injective node in Docker (pinned to v1.20.4, so `0x68` is included) with the EVM JSON-RPC at `localhost:8545`. A fresh local chain starts with the swap allowlist empty, matching public networks: launch a spot market and allowlist it via `MsgUpdateSwapParams`, then point `RPC_URL=http://localhost:8545` at the Makefile targets.
+For fully local testing, follow the [precompiles example's local development guide](https://github.com/InjectiveLabs/inj-examples/blob/main/examples/precompiles/README.md#local-development). It runs a real Injective node in Docker (pinned to v1.20.4, so `0x68` is included) with the EVM JSON-RPC at `localhost:8545`. A fresh local chain starts with the swap allowlist empty, matching public networks: launch a spot market and allowlist it via `MsgUpdateSwapParams`, then point `RPC_URL=http://localhost:8545` at the Makefile targets.
 
 ## Networks
 
 | | Chain ID | JSON-RPC |
 |---|---|---|
-| Testnet | 1439 | `https://k8s.testnet.json-rpc.injective.network/` |
+| Testnet | 1439 | `https://sentry.json-rpc.testnet.injective.network/` |
 | Mainnet | 1776 | `https://sentry.evm-rpc.injective.network/` |
 
-Testnet has run the precompile since v1.20.4-beta (Sep 15, 2026); mainnet since the v1.20.4 upgrade (Sep 24, 2026).
+Testnet has run the precompile since v1.20.4-beta (Sep 15, 2026). Mainnet has run it since the v1.20.4 upgrade (Sep 24, 2026).

@@ -9,8 +9,8 @@ export const injectiveEVMTestnet = {
   name: 'Injective EVM Testnet',
   nativeCurrency: { decimals: 18, name: 'Injective', symbol: 'INJ' },
   rpcUrls: {
-    default: { http: ['https://k8s.testnet.json-rpc.injective.network/'] },
-    public:  { http: ['https://k8s.testnet.json-rpc.injective.network/'] },
+    default: { http: ['https://sentry.json-rpc.testnet.injective.network/'] },
+    public:  { http: ['https://sentry.json-rpc.testnet.injective.network/'] },
   },
   blockExplorers: {
     default: {
@@ -61,7 +61,7 @@ export const wagmiConfig = createConfig({
     injected({ target: 'metaMask' }),
   ],
   transports: {
-    [injectiveEVMTestnet.id]: http('https://k8s.testnet.json-rpc.injective.network/'),
+    [injectiveEVMTestnet.id]: http('https://sentry.json-rpc.testnet.injective.network/'),
     [sepolia.id]: http(),
   },
 })

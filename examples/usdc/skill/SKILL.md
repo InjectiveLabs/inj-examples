@@ -125,7 +125,7 @@ See [references/troubleshooting.md](references/troubleshooting.md) for full deta
 ```
 Injective EVM Testnet
   Chain ID : 1439
-  RPC      : https://k8s.testnet.json-rpc.injective.network/
+  RPC      : https://sentry.json-rpc.testnet.injective.network/
   Explorer : https://testnet.blockscout.injective.network
   Docs     : https://docs.injective.network/developers-evm
 

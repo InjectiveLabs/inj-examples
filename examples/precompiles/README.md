@@ -286,7 +286,7 @@ make testnet-verify
 | | Testnet | Mainnet |
 |---|---|---|
 | Chain ID | `1439` | `1776` |
-| JSON-RPC | `https://k8s.testnet.json-rpc.injective.network/` | `https://sentry.evm-rpc.injective.network/` |
+| JSON-RPC | `https://sentry.json-rpc.testnet.injective.network/` | `https://sentry.evm-rpc.injective.network/` |
 | Explorer | `https://testnet.blockscout.injective.network/` | `https://blockscout.injective.network/` |
 | Faucet | `https://testnet.faucet.injective.network/` | — |
 

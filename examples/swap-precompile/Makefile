@@ -1,8 +1,8 @@
 -include .env
 export
 
-# Defaults — override via .env or shell
-RPC_URL      ?= https://k8s.testnet.json-rpc.injective.network/
+# Defaults, override via .env or shell
+RPC_URL      ?= https://sentry.json-rpc.testnet.injective.network/
 SWAP         := 0x0000000000000000000000000000000000000068
 # Testnet USDT (MTS bank-backed ERC20) and the INJ/USDT spot market
 TOKEN_IN     ?= 0xaDC7bcB5d8fe053Ef19b4E0C861c262Af6e0db60
