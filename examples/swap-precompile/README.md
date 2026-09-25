@@ -54,3 +54,14 @@ For fully local testing, follow the [precompiles example's local development gui
 | Mainnet | 1776 | `https://sentry.evm-rpc.injective.network/` |
 
 Testnet has run the precompile since v1.20.4-beta (Sep 15, 2026). Mainnet has run it since the v1.20.4 upgrade (Sep 24, 2026).
+
+
+## Full localnet demo
+
+`./localnet-demo.sh [home_dir]` runs the entire lifecycle on a fresh local chain with a single command: chain init, a tokenfactory USDC with an ERC20 pair (MultiVM Token Standard), an instant INJ/USDC spot market launch, the swap allowlist update, orderbook liquidity, and a real quote-then-swap through the precompile via cast. It needs a v1.20.4+ `injectived`, Foundry's `cast`, and python3 on the PATH.
+
+Three things the demo solves that are easy to get stuck on:
+
+- **The market allowlist without governance.** The script sets `exchange_admins` in genesis to the dev key, so `MsgUpdateSwapParams` (signed with `injectived tx sign`, there is no dedicated CLI command) works immediately. A governance proposal also works since the demo sets a 10 second voting period, but the admin path is one transaction.
+- **Post-only mode on fresh chains.** The exchange module's downtime detector puts a new chain into post-only mode, which makes every swap revert with `exchange is in post-only mode`. The demo sets `post_only_mode_blocks_amount_after_downtime` to 1 in genesis so the window expires after one block.
+- **Tick-size units.** `instant-spot-market-launch` and `create-spot-limit-order` both speak human units when the decimals flags are set. Chain-format tick values make later orders fail with tick-size mismatches.
