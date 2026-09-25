@@ -93,9 +93,11 @@ flowchart TB
         L6["Swap<br/>same precompile calls against<br/>sentry.evm-rpc endpoints"]
         L1 --> L2 --> L3 --> L4 --> L5 --> L6
     end
-    D1 -.corresponds to.- L1
-    D3 -.corresponds to.- L3
-    D4 -.corresponds to.- L4
+    D1 -.- L1
+    D3 -.- L3
+    D4 -.- L4
 ```
+
+Dotted lines connect the stages that differ most between the demo and live networks.
 
 The two paths that change most on live networks: market creation costs the real listing fee or a governance vote, and the allowlist is a request to the team rather than a key you hold. Everything from the quote onward is identical code.
