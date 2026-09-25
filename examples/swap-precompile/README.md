@@ -65,3 +65,37 @@ Three things the demo solves that are easy to get stuck on:
 - **The market allowlist without governance.** The script sets `exchange_admins` in genesis to the dev key, so `MsgUpdateSwapParams` (signed with `injectived tx sign`, there is no dedicated CLI command) works immediately. A governance proposal also works since the demo sets a 10 second voting period, but the admin path is one transaction.
 - **Post-only mode on fresh chains.** The exchange module's downtime detector puts a new chain into post-only mode, which makes every swap revert with `exchange is in post-only mode`. The demo sets `post_only_mode_blocks_amount_after_downtime` to 1 in genesis so the window expires after one block.
 - **Tick-size units.** `instant-spot-market-launch` and `create-spot-limit-order` both speak human units when the decimals flags are set. Chain-format tick values make later orders fail with tick-size mismatches.
+
+
+### Demo flow vs testnet and mainnet
+
+The demo compresses into one script what is a multi-party process on live networks. The stages are the same; who performs them and how differs:
+
+```mermaid
+flowchart TB
+    subgraph DEMO["Localnet demo (one script, one operator)"]
+        direction TB
+        D1["Genesis config<br/>dev key set as exchange admin,<br/>post-only window disabled"]
+        D2["Token setup<br/>tokenfactory USDC +<br/>MsgCreateTokenPair (permissionless)"]
+        D3["Market creation<br/>MsgInstantSpotMarketLaunch<br/>20 INJ fee, no governance"]
+        D4["Allowlist<br/>MsgUpdateSwapParams signed by the<br/>genesis admin, effective next block"]
+        D5["Liquidity<br/>dev2 posts a limit sell"]
+        D6["Swap<br/>quoteExactInputV1 then swapExactInputV1<br/>via cast at localhost:8545"]
+        D1 --> D2 --> D3 --> D4 --> D5 --> D6
+    end
+    subgraph LIVE["Testnet / mainnet (multiple parties)"]
+        direction TB
+        L1["Admins already set<br/>exchange_admins is a live chain param,<br/>query /injective/exchange/v2/exchangeParams"]
+        L2["Tokens already exist<br/>MTS pairs live for major assets;<br/>new bank denoms use MsgCreateTokenPair"]
+        L3["Market creation<br/>MsgInstantSpotMarketLaunch with the listing fee,<br/>or a spot market launch governance proposal"]
+        L4["Allowlist<br/>request via Discord #developers or partner contact,<br/>then an exchange admin sends MsgUpdateSwapParams<br/>(or governance does)"]
+        L5["Liquidity<br/>live orderbook, market makers"]
+        L6["Swap<br/>same precompile calls against<br/>sentry.evm-rpc endpoints"]
+        L1 --> L2 --> L3 --> L4 --> L5 --> L6
+    end
+    D1 -.corresponds to.- L1
+    D3 -.corresponds to.- L3
+    D4 -.corresponds to.- L4
+```
+
+The two paths that change most on live networks: market creation costs the real listing fee or a governance vote, and the allowlist is a request to the team rather than a key you hold. Everything from the quote onward is identical code.
