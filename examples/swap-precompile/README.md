@@ -79,7 +79,7 @@ flowchart TB
         D2["Token setup<br/>tokenfactory USDC +<br/>MsgCreateTokenPair (permissionless)"]
         D3["Market creation<br/>MsgInstantSpotMarketLaunch<br/>20 INJ fee, no governance"]
         D4["Allowlist<br/>MsgUpdateSwapParams signed by the<br/>genesis admin, effective next block"]
-        D5["Liquidity<br/>dev2 posts a limit sell"]
+        D5["Liquidity<br/>you seed the empty book yourself:<br/>dev2 posts a limit sell to fill against"]
         D6["Swap<br/>quoteExactInputV1 then swapExactInputV1<br/>via cast at localhost:8545"]
         D1 --> D2 --> D3 --> D4 --> D5 --> D6
     end
@@ -89,7 +89,7 @@ flowchart TB
         L2["Tokens already exist<br/>MTS pairs live for major assets;<br/>new bank denoms use MsgCreateTokenPair"]
         L3["Market creation<br/>MsgInstantSpotMarketLaunch with the listing fee,<br/>or a spot market launch governance proposal"]
         L4["Allowlist<br/>request via Discord #developers or partner contact,<br/>then an exchange admin sends MsgUpdateSwapParams<br/>(or governance does)"]
-        L5["Liquidity<br/>live orderbook, market makers"]
+        L5["Liquidity<br/>already on the book: market makers<br/>maintain live orders, nothing to seed"]
         L6["Swap<br/>same precompile calls against<br/>sentry.evm-rpc endpoints"]
         L1 --> L2 --> L3 --> L4 --> L5 --> L6
     end
