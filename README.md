@@ -66,6 +66,7 @@ Reference implementations and demos.
 |---------|-------------|
 | [`precompiles`](examples/precompiles) | Injective precompile integration — Bank ERC-20 token, all precompile interfaces |
 | [`usdc`](examples/usdc) | USDC CCTP cross-chain transfer demo |
+| [`layerzero-oft`](examples/layerzero-oft) | LayerZero OFT to Solana with MTS balances: native first (adapter) and EVM first (BankERC20 backed OFT) paths, wiring and verification |
 
 ## Tutorials
 
