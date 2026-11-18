@@ -59,12 +59,8 @@ local-init:
 	@cd local-dev && ./setup.sh
 
 local-start:
-	@cd local-dev && docker compose up -d
-	@echo "Waiting for node..."
-	@for i in 1 2 3 4 5 6 7 8 9 10; do \
-		curl -s -o /dev/null $(LOCAL_RPC) && echo "Node ready at $(LOCAL_RPC)" && exit 0; \
-		sleep 2; \
-	done; echo "Node did not start in time"
+	@cd local-dev && docker compose up -d --wait
+	@echo "Node ready at $(LOCAL_RPC)"
 	@echo "Explorer: http://localhost:3000"
 
 local-stop:

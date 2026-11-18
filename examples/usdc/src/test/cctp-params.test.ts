@@ -4,6 +4,7 @@
 
 import { describe, it, expect } from 'vitest'
 import { parseUnits, formatUnits, padHex, isAddress, isHex } from 'viem'
+import { bufferedFastFee } from '../fees'
 import { CONTRACTS, SEPOLIA_CONTRACTS, INJECTIVE_SOURCE_DOMAIN, SEPOLIA_DESTINATION_DOMAIN } from '../wagmi'
 
 function prepareDepositForBurnArgs(
@@ -57,5 +58,14 @@ describe('CCTP Parameter Preparation', () => {
     it('Sepolia MessageTransmitterV2 is valid address', () => expect(isAddress(SEPOLIA_CONTRACTS.MESSAGE_TRANSMITTER_V2)).toBe(true))
     it('Injective source domain is 29', () => expect(INJECTIVE_SOURCE_DOMAIN).toBe(29))
     it('Sepolia destination domain is 0', () => expect(SEPOLIA_DESTINATION_DOMAIN).toBe(0))
+  })
+})
+
+describe('Fast Transfer fee cap', () => {
+  it('converts basis points to USDC subunits and adds a buffer', () => {
+    expect(bufferedFastFee(1_000_000n, 1)).toBe(120n)
+    expect(bufferedFastFee(1_000_000n, 1.3)).toBe(156n)
+    expect(bufferedFastFee(1n, 1)).toBe(1n)
+    expect(bufferedFastFee(1_000_000n, 0)).toBe(0n)
   })
 })

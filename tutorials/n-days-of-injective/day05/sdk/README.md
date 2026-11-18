@@ -8,18 +8,12 @@ Exposes on-chain data and the exchange-api data,
 Parses responses into native JavaScript types
 much more ...
 
-# Create example project
-
-```bash
-npm init -y
-```
-
 # Query
 
 ## Installation
 
 ```bash 
-npm install @injectivelabs/sdk-ts
+npm install
 ```
 
 ## Run

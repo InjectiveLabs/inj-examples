@@ -9,8 +9,8 @@ export const injectiveEVMTestnet = {
   name: 'Injective EVM Testnet',
   nativeCurrency: { decimals: 18, name: 'Injective', symbol: 'INJ' },
   rpcUrls: {
-    default: { http: ['https://sentry.json-rpc.testnet.injective.network/'] },
-    public:  { http: ['https://sentry.json-rpc.testnet.injective.network/'] },
+    default: { http: ['https://k8s.testnet.json-rpc.injective.network/'] },
+    public:  { http: ['https://k8s.testnet.json-rpc.injective.network/'] },
   },
   blockExplorers: {
     default: {
@@ -29,9 +29,8 @@ export const CONTRACTS = {
 } as const
 
 // ─── Ethereum Sepolia contracts ───────────────────────────────────────────────
-// CCTP v2 contracts are deployed at the same address across all chains via CREATE2.
+// Verify each deployment against Circle's CCTP contract reference.
 export const SEPOLIA_CONTRACTS = {
-  // Same address as on Injective — CREATE2 deployment
   TOKEN_MESSENGER_V2:     '0x8FE6B999Dc680CcFDD5Bf7EB0974218be2542DAA' as `0x${string}`,
   MESSAGE_TRANSMITTER_V2: '0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275' as `0x${string}`,
   // Official Circle testnet USDC on Sepolia
@@ -50,7 +49,8 @@ export const SEPOLIA_DOMAIN = 0
 export const SEPOLIA_DESTINATION_DOMAIN = SEPOLIA_DOMAIN
 
 // Circle Attestation API (sandbox)
-export const CIRCLE_ATTESTATION_API = 'https://iris-api-sandbox.circle.com/v2/messages'
+export const CIRCLE_API = 'https://iris-api-sandbox.circle.com/v2'
+export const CIRCLE_ATTESTATION_API = `${CIRCLE_API}/messages`
 
 // ─── Wagmi config ─────────────────────────────────────────────────────────────
 export const wagmiConfig = createConfig({
@@ -61,7 +61,7 @@ export const wagmiConfig = createConfig({
     injected({ target: 'metaMask' }),
   ],
   transports: {
-    [injectiveEVMTestnet.id]: http('https://sentry.json-rpc.testnet.injective.network/'),
+    [injectiveEVMTestnet.id]: http('https://k8s.testnet.json-rpc.injective.network/'),
     [sepolia.id]: http(),
   },
 })

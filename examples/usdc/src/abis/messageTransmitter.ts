@@ -1,15 +1,4 @@
-/**
- * MessageTransmitter ABI
- * Contract: 0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275 (same address all chains via CREATE2)
- *
- * Investigation result (2025-04-30):
- *   - receiveMessage(bytes,bytes)          → returns true ✅  (USE THIS)
- *   - receiveFinalizedMessage(bytes,bytes) → reverts ❌
- *
- * Despite the burn using CCTP v2 (TokenMessengerV2 with minFinalityThreshold=2000),
- * the destination MessageTransmitter on Sepolia only exposes the v1-style
- * receiveMessage() which also handles v2-formatted messages transparently.
- */
+// Circle MessageTransmitterV2. See https://developers.circle.com/cctp/references/contract-interfaces
 export const messageTransmitterAbi = [
   {
     type: 'function',
@@ -27,5 +16,10 @@ export const messageTransmitterAbi = [
     stateMutability: 'view',
     inputs: [],
     outputs: [{ name: '', type: 'uint32' }],
+  },
+  {
+    type: 'event',
+    name: 'MessageSent',
+    inputs: [{ name: 'message', type: 'bytes', indexed: false }],
   },
 ] as const

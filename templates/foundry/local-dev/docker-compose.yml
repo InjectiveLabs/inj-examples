@@ -2,7 +2,7 @@ services:
 
   # ---------- Injective node ----------
   injectived:
-    image: injectivelabs/injective-core:latest
+    image: ${INJ_IMAGE:-injectivelabs/injective-core:v1.21.0}
     container_name: injective-local
     ports:
       - "8545:8545"    # EVM JSON-RPC

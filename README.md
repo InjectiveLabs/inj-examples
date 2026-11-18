@@ -58,19 +58,21 @@ npm install
 npm run dev
 ```
 
-## Examples
+## Demos & Examples
 
 Reference implementations and demos.
 
-| Example | Description |
-|---------|-------------|
-| [`precompiles`](examples/precompiles) | Injective precompile integration — Bank ERC-20 token, all precompile interfaces |
-| [`usdc`](examples/usdc) | USDC CCTP cross-chain transfer demo |
-| [`layerzero-oft`](examples/layerzero-oft) | LayerZero OFT to Solana with MTS balances: native first (adapter) and EVM first (BankERC20 backed OFT) paths, wiring and verification |
+| Example | Description                                                                                                                            |
+|---------|----------------------------------------------------------------------------------------------------------------------------------------|
+| [`precompiles`](examples/precompiles) | Injective precompile integration - Bank ERC-20 token, all precompile interfaces                                                        |
+| [`swap-precompile`](examples/swap-precompile) | Quote and execute exact-input and exact-output spot swaps on Injective                                                                 |
+| [`ibc-precompile`](examples/ibc-precompile) | Send ICS-20 transfers from the EVM and receive them with a Solidity hook                                                               |
+| [`usdc`](examples/usdc) | USDC CCTP cross-chain transfer demo                                                                                                    |
+| [`layerzero-oft`](examples/layerzero-oft) | LayerZero OFT to Solana with MTS balances - native first (adapter) and EVM first (BankERC20 backed OFT) paths, wiring and verification |
 
 ## Tutorials
 
-Step-by-step guided learning resources.
+Step-by-step guided learning resources for developer onboarding.
 
 | Tutorial | Description |
 |----------|-------------|

@@ -1,10 +1,12 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   useAccount, useWriteContract, useWaitForTransactionReceipt, useSwitchChain, useChainId,
 } from 'wagmi'
 import { sepolia } from 'wagmi/chains'
-import { parseUnits, padHex, isAddress } from 'viem'
+import { formatUnits, parseUnits, padHex, isAddress, isAddressEqual, parseEventLogs, zeroAddress, zeroHash } from 'viem'
+import { useQuery } from '@tanstack/react-query'
+import { fetchFastFee, bufferedFastFee } from '../fees'
 import {
   CONTRACTS, SEPOLIA_CONTRACTS,
   SEPOLIA_DOMAIN, INJECTIVE_DOMAIN,
@@ -126,8 +128,8 @@ function PollCountdown({ key: k }: { key: string | number }) {
 
 // ─── Direction selector ───────────────────────────────────────────────────────
 function DirectionToggle({
-  direction, onChange,
-}: { direction: TransferDirection; onChange: (d: TransferDirection) => void }) {
+  direction, onChange, disabled,
+}: { direction: TransferDirection; onChange: (d: TransferDirection) => void; disabled: boolean }) {
   const isInjToSep = direction === 'inj→sep'
   const src  = isInjToSep ? CHAIN_META.injective : CHAIN_META.sepolia
   const dest = isInjToSep ? CHAIN_META.sepolia   : CHAIN_META.injective
@@ -166,6 +168,7 @@ function DirectionToggle({
           <motion.button
             whileTap={{ rotate: 180, scale: 0.9 }}
             transition={{ duration: 0.3 }}
+            disabled={disabled}
             onClick={() => onChange(isInjToSep ? 'sep→inj' : 'inj→sep')}
             className="w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95"
             style={{ background: 'rgba(108,99,255,0.15)', border: '1px solid rgba(108,99,255,0.25)' }}
@@ -195,24 +198,26 @@ function DirectionToggle({
       {/* Quick-select pills */}
       <div className="flex gap-2 mt-3">
         <button
-          onClick={() => onChange('inj→sep')}
+          disabled={disabled}
+            onClick={() => onChange('inj→sep')}
           className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-all ${
             isInjToSep
               ? 'bg-[rgba(108,99,255,0.2)] text-[#A78BFA] border border-[rgba(108,99,255,0.35)]'
               : 'text-[#A0A0B8] border border-transparent hover:border-[rgba(108,99,255,0.2)] hover:text-white'
           }`}
         >
-          🔵 INJ → ETH
+          Injective → Sepolia
         </button>
         <button
-          onClick={() => onChange('sep→inj')}
+          disabled={disabled}
+            onClick={() => onChange('sep→inj')}
           className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-all ${
             !isInjToSep
               ? 'bg-[rgba(108,99,255,0.2)] text-[#A78BFA] border border-[rgba(108,99,255,0.35)]'
               : 'text-[#A0A0B8] border border-transparent hover:border-[rgba(108,99,255,0.2)] hover:text-white'
           }`}
         >
-          🔷 ETH → INJ
+          Sepolia → Injective
         </button>
       </div>
     </div>
@@ -260,6 +265,7 @@ export function CCTPTransfer() {
   const [amount, setAmount]           = useState('')
   const [destAddress, setDestAddress] = useState('')
   const [burnTxHash, setBurnTxHash]   = useState('')
+  const [useFast, setUseFast] = useState(false)
   const [isPolling, setIsPolling]     = useState(false)
   const [pollTick, setPollTick]       = useState(0)
 
@@ -277,39 +283,60 @@ export function CCTPTransfer() {
   const usdcContract   = isInjToSep ? CONTRACTS.USDC : SEPOLIA_CONTRACTS.USDC
   const messengerAddr  = isInjToSep ? CONTRACTS.TOKEN_MESSENGER_V2 : SEPOLIA_CONTRACTS.TOKEN_MESSENGER_V2
   const transmitterAddr = isInjToSep ? SEPOLIA_CONTRACTS.MESSAGE_TRANSMITTER_V2 : CONTRACTS.MESSAGE_TRANSMITTER_V2
+  const sourceTransmitter = isInjToSep ? CONTRACTS.MESSAGE_TRANSMITTER_V2 : SEPOLIA_CONTRACTS.MESSAGE_TRANSMITTER_V2
 
   // ── Write contracts ────────────────────────────────────────────────────────
-  const { writeContract: writeApprove, data: approveTxHash, isPending: approvePending } = useWriteContract()
+  const { writeContract: writeApprove, data: approveTxHash, isPending: approvePending, error: approveError, reset: resetApprove } = useWriteContract()
   const { writeContract: writeBurn,    data: burnTxHashData, isPending: burnPending }    = useWriteContract()
   const { writeContract: writeMint,    data: mintTxHash,    isPending: mintPending }     = useWriteContract()
 
-  const { isLoading: approveConfirming, isSuccess: approveConfirmed } =
-    useWaitForTransactionReceipt({ hash: approveTxHash })
-  const { isLoading: burnConfirming, isSuccess: burnConfirmed } =
-    useWaitForTransactionReceipt({ hash: burnTxHashData })
-  const { isLoading: mintConfirming, isSuccess: mintConfirmed } =
-    useWaitForTransactionReceipt({ hash: mintTxHash, chainId: dstChainId })
+  const approveReceipt = useWaitForTransactionReceipt({ hash: approveTxHash, chainId: srcChainId })
+  const approveConfirming = approveReceipt.isLoading
+  const approveConfirmed = approveReceipt.data?.status === 'success'
+  const burnReceipt = useWaitForTransactionReceipt({ hash: burnTxHashData, chainId: srcChainId })
+  const burnConfirming = burnReceipt.isLoading
+  const confirmedBurnReceipt = burnReceipt.data
+  const burnSucceeded = confirmedBurnReceipt?.status === 'success'
+  const burnConfirmed = burnSucceeded && parseEventLogs({
+    abi: messageTransmitterAbi, eventName: 'MessageSent',
+    logs: confirmedBurnReceipt.logs.filter(log => isAddressEqual(log.address, sourceTransmitter)),
+  }).length === 1
+  const mintReceipt = useWaitForTransactionReceipt({ hash: mintTxHash, chainId: dstChainId })
+  const mintConfirming = mintReceipt.isLoading
+  const mintConfirmed = mintReceipt.data?.status === 'success'
 
-  const { formatted: usdcBalance }  = useUSDCBalance(address, direction)
-  const { allowance } = useUSDCAllowance(address, messengerAddr, direction)
+  const { raw: sourceBalance, formatted: usdcBalance } = useUSDCBalance(address, direction)
+  const { allowance, refetch: refreshAllowance } = useUSDCAllowance(address, messengerAddr, direction)
 
   const {
     status: attStatus, message: attMessage, attestation,
-    error: attError, fetchAttestation, reset: resetAtt,
+    error: attError, delayReason, fetchAttestation, reset: resetAtt,
   } = useAttestation(attSourceDomain)
 
-  const amountParsed       = amount ? parseUnits(amount, 6) : 0n
+  const amountParsed = /^\d+(\.\d{0,6})?$/.test(amount) ? parseUnits(amount, 6) : 0n
+  const hasFunds = sourceBalance !== undefined && sourceBalance >= amountParsed
+  const isFormValid = amountParsed > 0n && hasFunds && isAddress(destAddress) && destAddress !== zeroAddress
+  const transactionPending = approvePending || approveConfirming || burnPending || burnConfirming || mintPending || mintConfirming
+  const fastTransfer = !isInjToSep && useFast
+  const feeQuote = useQuery({
+    queryKey: ['cctp-fast-fee', attSourceDomain, destDomain],
+    queryFn: ({ signal }) => fetchFastFee(attSourceDomain, destDomain, signal),
+    enabled: fastTransfer && step === 1,
+    refetchInterval: 60_000,
+    staleTime: 30_000,
+  })
+  const maxFee = fastTransfer && feeQuote.data !== undefined
+    ? bufferedFastFee(amountParsed, feeQuote.data)
+    : 0n
+  const feeReady = !fastTransfer || (feeQuote.isSuccess && maxFee < amountParsed)
+  const canBurn = isFormValid && isOnSrcChain && feeReady && !transactionPending && !burnSucceeded
   const hasEnoughAllowance = allowance !== undefined && allowance >= amountParsed && amountParsed > 0n
 
   // ── Reset on direction change ──────────────────────────────────────────────
   const handleDirectionChange = (d: TransferDirection) => {
+    if (d === direction || step !== 1 || transactionPending || burnConfirmed) return
+    resetAll()
     setDirection(d)
-    setStep(1)
-    setAmount('')
-    setDestAddress('')
-    setBurnTxHash('')
-    setIsPolling(false)
-    resetAtt()
   }
 
   // ── Step labels ────────────────────────────────────────────────────────────
@@ -319,7 +346,7 @@ export function CCTPTransfer() {
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   const handleApprove = () => {
-    if (!amountParsed) return
+    if (!isFormValid || !isOnSrcChain || transactionPending) return
     writeApprove({
       address: usdcContract, abi: erc20Abi, functionName: 'approve',
       args: [messengerAddr, amountParsed],
@@ -328,17 +355,8 @@ export function CCTPTransfer() {
   }
 
   const handleBurn = () => {
-    if (!amountParsed || !destAddress || !isAddress(destAddress)) return
-    // CCTP v2 finality + fee strategy:
-    //
-    // INJ source (fast chain ~3s): use FINALITY_THRESHOLD_FINALIZED (2000)
-    //   → standard mode, Circle waits for Injective finality (~few seconds), maxFee = 0 OK
-    //
-    // ETH Sepolia source: FINALITY_THRESHOLD_FINALIZED (2000) = ~13-15 min L1 finality wait
-    //   → use minFinalityThreshold=1 (fast mode) BUT fast mode requires maxFee > 0
-    //   → maxFee = 1000 (0.001 USDC) to pay the Circle relayer — deducted from minted amount
-    const minFinalityThreshold = isInjToSep ? 2000 : 1
-    const maxFee = isInjToSep ? 0n : 1000n   // 0.001 USDC relay fee for Sepolia fast mode
+    if (!canBurn || !hasEnoughAllowance) return
+    const minFinalityThreshold = fastTransfer ? 1000 : 2000
 
     writeBurn({
       address: messengerAddr, abi: tokenMessengerAbi, functionName: 'depositForBurn',
@@ -347,7 +365,7 @@ export function CCTPTransfer() {
         destDomain,
         padHex(destAddress as `0x${string}`, { size: 32 }),
         usdcContract,
-        '0x0000000000000000000000000000000000000000000000000000000000000000',
+        zeroHash,
         maxFee,
         minFinalityThreshold,
       ],
@@ -356,7 +374,7 @@ export function CCTPTransfer() {
   }
 
   const handleMint = () => {
-    if (!attMessage || !attestation) return
+    if (!isOnDstChain || !attMessage || !attestation || transactionPending || mintConfirmed) return
     writeMint({
       address: transmitterAddr,
       abi: messageTransmitterAbi,
@@ -368,19 +386,24 @@ export function CCTPTransfer() {
 
   // ── Effects ────────────────────────────────────────────────────────────────
   useEffect(() => {
-    if (burnConfirmed && burnTxHashData && step === 1) {
-      setBurnTxHash(burnTxHashData)
+    if (burnConfirmed && burnReceipt.data && step === 1) {
+      setBurnTxHash(burnReceipt.data.transactionHash)
       setStep(2)
+      setIsPolling(true)
     }
-  }, [burnConfirmed, burnTxHashData, step])
+  }, [burnConfirmed, burnReceipt.data, step])
+
+  useEffect(() => {
+    if (approveConfirmed) void refreshAllowance()
+  }, [approveConfirmed, refreshAllowance])
 
   const doFetch = useCallback(() => {
-    const hash = burnTxHash || burnTxHashData || ''
+    const hash = burnTxHash
     if (hash) {
       fetchAttestation(hash)
       setPollTick(t => t + 1)
     }
-  }, [burnTxHash, burnTxHashData, fetchAttestation])
+  }, [burnTxHash, fetchAttestation])
 
   useEffect(() => {
     if (!isPolling) return
@@ -397,11 +420,17 @@ export function CCTPTransfer() {
     if (attStatus === 'complete' && step === 2) setStep(3)
   }, [attStatus, step])
 
-  const isFormValid = amount && Number(amount) > 0 && destAddress && isAddress(destAddress)
-
   const resetAll = () => {
-    setStep(1); setAmount(''); setDestAddress(''); setBurnTxHash('')
-    setIsPolling(false); resetAtt()
+    resetApprove()
+    resetBurn()
+    resetMint()
+    resetAtt()
+    setStep(1)
+    setAmount('')
+    setDestAddress('')
+    setBurnTxHash('')
+    setUseFast(false)
+    setIsPolling(false)
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -415,7 +444,8 @@ export function CCTPTransfer() {
       {/* Direction selector */}
       <AnimatePresence mode="wait">
         <motion.div key="dir-selector" initial={CARD_INITIAL} animate={CARD_ANIMATE} exit={CARD_EXIT} transition={CARD_TRANSITION}>
-          <DirectionToggle direction={direction} onChange={handleDirectionChange} />
+          <DirectionToggle direction={direction} onChange={handleDirectionChange}
+            disabled={step !== 1 || transactionPending || burnConfirmed} />
         </motion.div>
       </AnimatePresence>
 
@@ -471,29 +501,32 @@ export function CCTPTransfer() {
               </div>
             </div>
 
-            {/* ETH→INJ fast mode fee notice */}
             {!isInjToSep && (
-              <motion.div
-                initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-                className="flex items-start gap-2.5 px-3 py-2.5 rounded-xl"
-                style={{ background: 'rgba(234,179,8,0.06)', border: '1px solid rgba(234,179,8,0.15)' }}
-              >
-                <span className="text-base mt-0.5">⚡</span>
-                <div className="text-xs text-[#A0A0B8]">
-                  <span className="text-yellow-300 font-medium">Fast finality mode</span> — Circle relayer confirms in ~1 min.
-                  A relay fee of <span className="text-white font-mono">0.001 USDC</span> will be deducted from the minted amount on Injective.
-                </div>
-              </motion.div>
+              <label className="block text-sm text-[#A0A0B8]">
+                <input className="mr-2" type="checkbox" checked={useFast} disabled={transactionPending}
+                  onChange={e => setUseFast(e.target.checked)} />
+                Request Fast Transfer from Sepolia
+                {fastTransfer && (
+                  <span className="block mt-1">
+                    {feeQuote.isError
+                      ? 'Circle fee quote unavailable. Uncheck Fast Transfer to use Standard.'
+                      : feeQuote.data === undefined ? 'Fetching the Circle fee quote…'
+                        : amountParsed > 0n && maxFee >= amountParsed ? 'Increase the transfer amount to cover the fee cap.'
+                          : `Maximum fee: ${formatUnits(maxFee, 6)} USDC. The executed fee is deducted at mint.`}
+                  </span>
+                )}
+              </label>
             )}
 
             {/* Amount */}
             <div>
               <label className="block text-xs font-medium text-[#A0A0B8] mb-2">Amount (USDC)</label>
               <div className="relative">
-                <input className="input-field pr-24" placeholder="0.00" type="number" min="0"
+                <input className="input-field pr-24" placeholder="0.00" inputMode="decimal" disabled={transactionPending}
                   value={amount} onChange={e => setAmount(e.target.value)} />
                 <button className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#A78BFA] font-medium hover:text-white transition-colors"
-                  onClick={() => usdcBalance && setAmount(usdcBalance)}>MAX</button>
+                  disabled={transactionPending || sourceBalance === undefined}
+                  onClick={() => sourceBalance !== undefined && setAmount(formatUnits(sourceBalance, 6))}>MAX</button>
               </div>
               <div className="text-xs text-[#A0A0B8] mt-1">
                 Balance on {srcChainName}: <span className="text-white">{usdcBalance ?? '—'} USDC</span>
@@ -505,20 +538,21 @@ export function CCTPTransfer() {
               <label className="block text-xs font-medium text-[#A0A0B8] mb-2">
                 Recipient Address <span className="text-[#6C63FF]">(on {dstChainName})</span>
               </label>
-              <input className="input-field" placeholder="0x…" value={destAddress}
+              <input className="input-field" placeholder="0x…" value={destAddress} disabled={transactionPending}
                 onChange={e => setDestAddress(e.target.value)} />
               {destAddress && !isAddress(destAddress) && (
                 <div className="text-xs text-red-400 mt-1">Invalid address</div>
               )}
               <div className="text-xs text-[#A0A0B8] mt-1">
-                💡 Tip: use your own address to receive USDC on {dstChainName}
+                <button className="text-[#A78BFA]" disabled={!address || transactionPending}
+                  onClick={() => address && setDestAddress(address)}>Use connected address</button>
               </div>
             </div>
 
             {/* Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
               <button className="btn-secondary flex-1 justify-center" onClick={handleApprove}
-                disabled={!isFormValid || !isOnSrcChain || approvePending || approveConfirming || hasEnoughAllowance}>
+                disabled={!isFormValid || !isOnSrcChain || transactionPending || hasEnoughAllowance}>
                 {approvePending || approveConfirming ? (
                   <><span className="w-4 h-4 border-2 border-[#A78BFA]/30 border-t-[#A78BFA] rounded-full animate-spin-smooth" />
                     {approvePending ? 'Approving…' : 'Confirming…'}</>
@@ -527,7 +561,7 @@ export function CCTPTransfer() {
                 ) : <><span>🔓</span> Approve USDC</>}
               </button>
               <button className="btn-primary flex-1 justify-center" onClick={handleBurn}
-                disabled={!isFormValid || !isOnSrcChain || !hasEnoughAllowance || burnPending || burnConfirming}>
+                disabled={!canBurn || !hasEnoughAllowance}>
                 {burnPending || burnConfirming ? (
                   <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin-smooth" />
                     {burnPending ? 'Burning…' : 'Confirming…'}</>
@@ -539,6 +573,19 @@ export function CCTPTransfer() {
               {approveTxHash && <TxHashLink hash={approveTxHash} label="Approve TX" chainId={srcChainId} />}
               {burnTxHashData && <TxHashLink hash={burnTxHashData} label="Burn TX" chainId={srcChainId} />}
             </div>
+
+            {amountParsed > 0n && sourceBalance !== undefined && !hasFunds && (
+              <p className="text-sm text-red-400">Insufficient source USDC.</p>
+            )}
+            {(approveError || approveReceipt.error || burnError || burnReceipt.error || approveReceipt.data?.status === 'reverted' || burnReceipt.data?.status === 'reverted') && (
+              <p className="text-sm text-red-400">{(approveError || approveReceipt.error || burnError || burnReceipt.error)?.message ?? 'Source transaction reverted.'}</p>
+            )}
+            {burnSucceeded && !burnConfirmed && (
+              <p className="text-sm text-red-400">Expected one CCTP MessageSent log in the source receipt. Check the transaction in the explorer before retrying.</p>
+            )}
+            <button className="btn-secondary" disabled={transactionPending || burnConfirmed} onClick={() => setStep(2)}>
+              Resume with a burn transaction hash
+            </button>
 
             {burnConfirmed && (
               <motion.div
@@ -566,17 +613,16 @@ export function CCTPTransfer() {
                 style={{ background: 'rgba(108,99,255,0.06)', border: '1px solid rgba(108,99,255,0.12)' }}>
                 <span className="text-base mt-0.5">⏱</span>
                 <div className="text-xs text-[#A0A0B8]">
-                  {isInjToSep
-                    ? <><span className="text-white font-medium">Injective source:</span> fast finality (~3 s), attestation usually ready in &lt;1 min.</>
-                    : <><span className="text-white font-medium">Ethereum Sepolia source:</span> using fast confirmation (1 block, ~15 s). Attestation should arrive within 1–2 min. <span className="text-yellow-400">Previous burns with slow finality (~2000) can take 13–15 min — those will still complete.</span></>
-                  }
+                  Circle's wait depends on the source chain, requested finality, and Iris processing.
+                  Standard transfers from Sepolia can take several minutes.
                 </div>
               </div>
             </div>
 
             <div>
+              {/^0x[\da-fA-F]{64}$/.test(burnTxHash) && <TxHashLink hash={burnTxHash} label="Burn TX" chainId={srcChainId} />}
               <label className="block text-xs font-medium text-[#A0A0B8] mb-2">Burn Transaction Hash</label>
-              <input className="input-field font-mono" placeholder="0x…" value={burnTxHash}
+              <input className="input-field font-mono" placeholder="0x…" value={burnTxHash} readOnly={isPolling || burnConfirmed}
                 onChange={e => setBurnTxHash(e.target.value)} />
             </div>
 
@@ -615,6 +661,10 @@ export function CCTPTransfer() {
                     </span>
                   </div>
 
+                  {delayReason && (
+                    <p className="text-xs text-yellow-300">Circle delay reason: {delayReason}.</p>
+                  )}
+
                   {/* Countdown for polling */}
                   {attStatus === 'pending_confirmations' && isPolling && (
                     <PollCountdown key={pollTick} />
@@ -641,12 +691,12 @@ export function CCTPTransfer() {
             </AnimatePresence>
 
             <div className="flex gap-3">
-              <button className="btn-secondary" onClick={() => { resetAtt(); setIsPolling(false); setStep(1) }}>
-                ← Back
+              <button className="btn-secondary" onClick={resetAll}>
+                Start over
               </button>
               {attStatus !== 'complete' ? (
                 <button className="btn-primary flex-1 justify-center"
-                  onClick={() => setIsPolling(true)} disabled={!burnTxHash || isPolling}>
+                  onClick={() => setIsPolling(true)} disabled={!/^0x[\da-fA-F]{64}$/.test(burnTxHash) || isPolling}>
                   {isPolling
                     ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin-smooth" /> Polling…</>
                     : <><span>📡</span> Fetch Attestation</>}
@@ -740,9 +790,19 @@ export function CCTPTransfer() {
               )}
             </AnimatePresence>
 
+            {(mintError || mintReceipt.error || mintReceipt.data?.status === 'reverted') && (
+              <p className="text-sm text-red-400">{(mintError || mintReceipt.error)?.message ?? 'Mint reverted.'}</p>
+            )}
+
             {/* Action buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
-              <button className="btn-secondary" onClick={() => setStep(2)}>← Back</button>
+              {!mintConfirmed && (
+                <button className="btn-secondary" disabled={transactionPending} onClick={() => {
+                  resetMint()
+                  resetAtt()
+                  setStep(2)
+                }}>Check attestation again</button>
+              )}
 
               {!mintConfirmed ? (
                 <button
@@ -773,7 +833,7 @@ export function CCTPTransfer() {
             <div className="card p-4">
               <div className="text-xs font-semibold mb-2 text-[#A0A0B8] uppercase tracking-wider">ABI Reference</div>
               <div className="bg-[#0A0A0F] border border-[rgba(108,99,255,0.1)] rounded-xl p-3 font-mono text-xs text-[#A0A0B8] overflow-x-auto">
-                <pre>{`// MessageTransmitterV2 (same addr on all chains via CREATE2)
+                <pre>{`// Destination MessageTransmitterV2
 // ${transmitterAddr}
 receiveMessage(
   bytes message,      // from Circle Iris API

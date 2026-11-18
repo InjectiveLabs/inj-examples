@@ -12,8 +12,8 @@
 set -e
 
 REPO="InjectiveLabs/solidity-contracts"
-BRANCH="master"
-BASE_URL="https://raw.githubusercontent.com/${REPO}/${BRANCH}/src"
+REF="${SOLIDITY_CONTRACTS_REF:-v1.21.0-rc.1}"
+BASE_URL="https://raw.githubusercontent.com/${REPO}/${REF}/src"
 VENDOR_DIR="$(cd "$(dirname "$0")" && pwd)/injective"
 
 # All native Injective precompile interfaces
@@ -24,11 +24,7 @@ INTERFACES=(
   "ExchangeTypes.sol"     # Exchange structs (shared dependency)
   "Staking.sol"           # IStakingModule   - precompile at 0x0000...0066
   "Oracle.sol"            # IOracleModule    - precompile at 0x0000...0067
-)
-
-# Interfaces not yet published upstream, maintained locally and preserved across re-vendors
-LOCAL_ONLY=(
-  "Swap.sol"              # ISwapModule      - precompile at 0x0000...0068 (v1.20.4)
+  "IBC.sol"               # IIBCModule       - precompile at 0x0000...0069
 )
 
 # Bank precompile ERC-20 implementations
@@ -39,39 +35,18 @@ IMPLEMENTATIONS=(
 
 ALL_FILES=("${INTERFACES[@]}" "${IMPLEMENTATIONS[@]}")
 
-# Clean and recreate, keeping local-only files
-BACKUP_DIR="$(mktemp -d)"
-for file in "${LOCAL_ONLY[@]}"; do
-  [ -f "${VENDOR_DIR}/${file}" ] && cp "${VENDOR_DIR}/${file}" "${BACKUP_DIR}/${file}"
+# Download all upstream files before updating the vendored copy.
+# Swap.sol is kept locally in sync with the focused swap example.
+STAGING_DIR="$(mktemp -d)"
+trap 'rm -r "$STAGING_DIR"' EXIT
+
+echo "Fetching from ${REPO}@${REF}..."
+for file in "${ALL_FILES[@]}"; do
+  curl -fsS "${BASE_URL}/${file}" -o "${STAGING_DIR}/${file}"
 done
-rm -rf "$VENDOR_DIR"
+
 mkdir -p "$VENDOR_DIR"
-for file in "${LOCAL_ONLY[@]}"; do
-  [ -f "${BACKUP_DIR}/${file}" ] && cp "${BACKUP_DIR}/${file}" "${VENDOR_DIR}/${file}"
+for file in "${ALL_FILES[@]}"; do
+  cp "${STAGING_DIR}/${file}" "${VENDOR_DIR}/${file}"
 done
-rm -rf "$BACKUP_DIR"
-
-echo "Fetching from ${REPO}@${BRANCH}..."
-
-echo ""
-echo "  Interfaces:"
-for file in "${INTERFACES[@]}"; do
-  printf "    %-30s" "${file}"
-  curl -sf "${BASE_URL}/${file}" -o "${VENDOR_DIR}/${file}" && echo "ok" || {
-    echo "FAILED"
-    exit 1
-  }
-done
-
-echo ""
-echo "  Implementations:"
-for file in "${IMPLEMENTATIONS[@]}"; do
-  printf "    %-30s" "${file}"
-  curl -sf "${BASE_URL}/${file}" -o "${VENDOR_DIR}/${file}" && echo "ok" || {
-    echo "FAILED"
-    exit 1
-  }
-done
-
-echo ""
 echo "Vendored ${#ALL_FILES[@]} files to vendor/injective/"

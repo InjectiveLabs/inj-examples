@@ -16,7 +16,7 @@ if [ -n "${MTS_ERC20_ADDRESS:-}" ]; then
 else
   : "${OAPP_ADDRESS:?Set OAPP_ADDRESS (Path B) or MTS_ERC20_ADDRESS (Path A) in .env}"
   TOKEN="$OAPP_ADDRESS"
-  DENOM="erc20:$(echo "$OAPP_ADDRESS" | tr 'A-Z' 'a-z')"
+  DENOM="erc20:$(cast to-check-sum-address "$OAPP_ADDRESS")"
   MODE="Path B (OFT is the token)"
 fi
 

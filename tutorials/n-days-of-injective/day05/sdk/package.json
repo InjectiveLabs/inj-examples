@@ -8,8 +8,8 @@
   "description": "",
   "module": "true",
   "dependencies": {
-    "@injectivelabs/sdk-ts": "^1.16.38",
-    "@injectivelabs/wallet-strategy": "^1.16.38",
+    "@injectivelabs/networks": "1.20.68",
+    "@injectivelabs/sdk-ts": "1.20.68",
     "dotenv": "^17.2.3"
   },
   "scripts": {

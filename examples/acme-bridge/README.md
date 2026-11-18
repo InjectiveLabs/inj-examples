@@ -45,8 +45,8 @@ git clone https://github.com/InjectiveLabs/inj-examples
 cd inj-examples/examples/acme-bridge
 
 # Install Foundry dependencies
-forge install OpenZeppelin/openzeppelin-contracts --no-commit
-forge install foundry-rs/forge-std --no-commit
+git submodule update --init lib/openzeppelin-contracts
+forge install foundry-rs/forge-std --no-git
 
 # Configure
 cp .env.example .env

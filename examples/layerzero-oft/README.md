@@ -36,7 +36,7 @@ An existing token with a home elsewhere, for example an Ethereum token already o
 - For the Solana half: the LayerZero `oft-solana` example checked out separately, with its own prerequisites (Rust, Anchor, Solana CLI, pnpm). https://github.com/LayerZero-Labs/devtools/tree/main/examples/oft-solana
 
 ```bash
-forge install InjectiveLabs/solidity-contracts
+forge install InjectiveLabs/solidity-contracts@v1.21.0-rc.1
 forge install foundry-rs/forge-std
 cp .env.example .env     # fill in keys and addresses
 injectived keys unsafe-import-eth-key $INJ_KEY_NAME <PRIVATE_KEY without 0x> --keyring-backend file

@@ -48,13 +48,13 @@ sudo mv libwasmvm.x86_64.so /usr/lib
 ### With Docker
 
 ```bash
-docker run -it --rm injectivelabs/injective-core:v1.17.1 injectived version
+docker run -it --rm injectivelabs/injective-core:v1.21.0 injectived version
 ```
 
 If this succeeds, create alias to simplify commands
 
 ```bash
-alias injectived='docker run -it --rm -v ~/.injectived:/root/.injectived injectivelabs/injective-core:v1.17.1 injectived --home /root/.injectived'
+alias injectived='docker run -it --rm -v ~/.injectived:/root/.injectived injectivelabs/injective-core:v1.21.0 injectived --home /root/.injectived'
 ```
 
 > Note that this alias pertain to your *current shell session* only.
