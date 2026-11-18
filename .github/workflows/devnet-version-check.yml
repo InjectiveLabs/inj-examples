@@ -1,0 +1,156 @@
+name: Devnet version check
+
+# Weekly check that the local devnet's pinned injective-core image still matches
+# the version mainnet runs. Opens a labeled issue when mainnet has moved ahead.
+#
+# Comparison is on the base version (major.minor.patch). Mainnet frequently runs
+# patched builds with suffixes (v1.20.x-y.1); a suffix alone is not a bump.
+#
+# Kill switch: set repository variable DEVNET_VERSION_CHECK_DISABLED=true.
+
+on:
+  schedule:
+    - cron: "0 9 * * 1" # Mondays 09:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    if: vars.DEVNET_VERSION_CHECK_DISABLED != 'true'
+    env:
+      GH_TOKEN: ${{ github.token }}
+      COMPOSE_FILE: examples/precompiles/local-dev/docker-compose.yml
+      SETUP_FILE: examples/precompiles/local-dev/setup.sh
+      README_FILE: examples/precompiles/README.md
+      ISSUE_LABEL: devnet-version
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compare mainnet version against the pinned image
+        id: compare
+        run: |
+          python3 - <<'EOF'
+          import json, os, re, subprocess, sys, urllib.request
+
+          def fetch(url, timeout=15):
+              try:
+                  # publicnode's CDN rejects requests without a User-Agent
+                  req = urllib.request.Request(url, headers={"User-Agent": "inj-examples-devnet-version-check"})
+                  with urllib.request.urlopen(req, timeout=timeout) as r:
+                      return json.load(r)
+              except Exception as e:
+                  print(f"warn: {url} failed: {e}", file=sys.stderr)
+                  return None
+
+          # Two independent providers; a single load-balanced hostname can lie.
+          LCDS = [
+              "https://sentry.lcd.injective.network/cosmos/base/tendermint/v1beta1/node_info",
+              "https://injective-rest.publicnode.com/cosmos/base/tendermint/v1beta1/node_info",
+          ]
+          versions = []
+          for url in LCDS:
+              d = fetch(url)
+              if d:
+                  v = d.get("application_version", {}).get("version", "")
+                  if v:
+                      versions.append(v)
+          if not versions:
+              print("error: no LCD endpoint returned a version", file=sys.stderr)
+              sys.exit(1)
+
+          def base(v):
+              m = re.match(r"v?(\d+)\.(\d+)\.(\d+)", v)
+              return tuple(map(int, m.groups())) if m else None
+
+          # Versions may disagree mid-upgrade; the highest base wins.
+          mainnet_full = max(versions, key=lambda v: base(v) or (0, 0, 0))
+          mainnet_base = base(mainnet_full)
+          if not mainnet_base:
+              print(f"error: unparseable mainnet version {mainnet_full!r}", file=sys.stderr)
+              sys.exit(1)
+
+          def pinned_tag(path):
+              text = open(path, encoding="utf-8").read()
+              m = re.search(r"injectivelabs/injective-core:(v[\w.\-]+)", text)
+              return m.group(1) if m else None
+
+          pins = {p: pinned_tag(os.environ[k]) for k, p in [
+              ("COMPOSE_FILE", os.environ["COMPOSE_FILE"]),
+              ("SETUP_FILE", os.environ["SETUP_FILE"]),
+              ("README_FILE", os.environ["README_FILE"]),
+          ]}
+          compose_pin = pins[os.environ["COMPOSE_FILE"]]
+          if not compose_pin or not base(compose_pin):
+              print(f"error: no parseable pin in {os.environ['COMPOSE_FILE']}", file=sys.stderr)
+              sys.exit(1)
+
+          drift = sorted({v for v in pins.values() if v} - {compose_pin})
+
+          def docker_tag_exists(tag):
+              url = f"https://hub.docker.com/v2/repositories/injectivelabs/injective-core/tags/{tag}"
+              d = fetch(url)
+              return bool(d and d.get("name"))
+
+          out = {"bump": False}
+          if mainnet_base > base(compose_pin):
+              candidates = [mainnet_full, "v%d.%d.%d" % mainnet_base]
+              available = [t for t in dict.fromkeys(candidates) if docker_tag_exists(t)]
+              out = {
+                  "bump": True,
+                  "mainnet": mainnet_full,
+                  "pinned": compose_pin,
+                  "tags": available,
+                  "drift": drift,
+                  "sources": versions,
+              }
+          print(f"mainnet={mainnet_full} pinned={compose_pin} bump={out['bump']} drift={drift}")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"bump={'true' if out['bump'] else 'false'}\n")
+              f.write(f"result={json.dumps(json.dumps(out))}\n")
+          EOF
+
+      - name: Open or update the bump issue
+        if: steps.compare.outputs.bump == 'true'
+        env:
+          RESULT: ${{ fromJSON(steps.compare.outputs.result) }}
+        run: |
+          MAINNET=$(echo "$RESULT" | python3 -c "import sys,json;print(json.load(sys.stdin)['mainnet'])")
+          PINNED=$(echo "$RESULT" | python3 -c "import sys,json;print(json.load(sys.stdin)['pinned'])")
+          TAGS=$(echo "$RESULT" | python3 -c "import sys,json;print(', '.join(json.load(sys.stdin)['tags']) or 'none published yet')")
+          DRIFT=$(echo "$RESULT" | python3 -c "import sys,json;print(', '.join(json.load(sys.stdin)['drift']) or 'none')")
+          TITLE="Local devnet: mainnet runs ${MAINNET}, devnet pins ${PINNED}"
+
+          gh label create "$ISSUE_LABEL" --description "Devnet image pin lags mainnet" --color D93F0B 2>/dev/null || true
+
+          BODY=$(cat <<EOB
+          Mainnet reports \`${MAINNET}\` (LCD node_info, two providers), while the local devnet pins \`${PINNED}\`.
+
+          Published Docker Hub tags matching the new version: ${TAGS}.
+          Pin drift between the three files that carry the version: ${DRIFT}.
+
+          Files to update:
+          - \`${COMPOSE_FILE}\`
+          - \`${SETUP_FILE}\`
+          - \`${README_FILE}\` (prose mention, including the highest available precompile if the upgrade added one)
+
+          Bumping the pin needs a devnet smoke test: \`make local-init && make local-start\`, then the precompile deploy targets.
+          EOB
+          )
+
+          EXISTING=$(gh issue list --label "$ISSUE_LABEL" --state open --json number,title --jq '.[0] // empty')
+          if [ -z "$EXISTING" ]; then
+            gh issue create --title "$TITLE" --label "$ISSUE_LABEL" --body "$BODY"
+          else
+            NUM=$(echo "$EXISTING" | python3 -c "import sys,json;print(json.load(sys.stdin)['number'])")
+            KNOWN=$(echo "$EXISTING" | python3 -c "import sys,json;print(json.load(sys.stdin)['title'])")
+            if [ "$KNOWN" = "$TITLE" ]; then
+              echo "open issue #$NUM already tracks $MAINNET, nothing to do"
+            else
+              gh issue edit "$NUM" --title "$TITLE"
+              gh issue comment "$NUM" --body "$BODY"
+            fi
+          fi
