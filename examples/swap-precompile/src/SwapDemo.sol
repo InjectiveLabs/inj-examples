@@ -14,6 +14,47 @@ import {SWAP_CONTRACT} from "./ISwapModule.sol";
 contract SwapDemo {
     uint256 public constant BPS = 10_000;
 
+    /// @notice v1.21 quote reporting input consumption before output.
+    function quoteV2(address tokenIn, string calldata marketId, uint256 amountIn)
+        external view returns (uint256 amountInSpent, uint256 amountOut)
+    {
+        return SWAP_CONTRACT.quoteExactInputV2(tokenIn, marketId, amountIn);
+    }
+
+    /// @notice Execute within explicit output and unspent-input bounds.
+    /// @dev This demo spends its own funds. Production contracts must authorize
+    /// callers. Choose maxUnspent for the market tick and application's policy.
+    function swapV2(
+        address tokenIn,
+        string calldata marketId,
+        uint256 amountIn,
+        uint256 minOut,
+        uint256 maxUnspent,
+        address recipient,
+        uint256 deadline
+    ) external returns (uint256 amountInSpent, uint256 amountOut) {
+        require(minOut > 0, "zero minimum output");
+        (amountInSpent, amountOut) = SWAP_CONTRACT.swapExactInputV2(
+            tokenIn, marketId, amountIn, minOut, recipient, deadline
+        );
+        require(amountInSpent <= amountIn, "invalid spent amount");
+        require(amountIn - amountInSpent <= maxUnspent, "partial fill");
+    }
+
+    /// @notice Receive at least amountOut, spending at most maxAmountIn.
+    function swapForOutput(
+        address tokenOut,
+        string calldata marketId,
+        uint256 amountOut,
+        uint256 maxAmountIn,
+        address recipient,
+        uint256 deadline
+    ) external returns (uint256 amountInSpent, uint256 amountOutDelivered) {
+        return SWAP_CONTRACT.swapExactOutputV1(
+            tokenOut, marketId, amountOut, maxAmountIn, recipient, deadline
+        );
+    }
+
     /// @notice Read-only passthrough quote.
     function quote(
         address tokenIn,

@@ -12,8 +12,8 @@
 set -e
 
 REPO="InjectiveLabs/solidity-contracts"
-BRANCH="master"
-BASE_URL="https://raw.githubusercontent.com/${REPO}/${BRANCH}/src"
+REF="${SOLIDITY_CONTRACTS_REF:-v1.21.0-rc.1}"
+BASE_URL="https://raw.githubusercontent.com/${REPO}/${REF}/src"
 VENDOR_DIR="$(cd "$(dirname "$0")" && pwd)/injective"
 
 # ── Add the contracts you need ────────────────────────────────────────────
@@ -25,6 +25,8 @@ VENDOR_DIR="$(cd "$(dirname "$0")" && pwd)/injective"
 #   ExchangeTypes.sol     Exchange structs
 #   Staking.sol           IStakingModule   — precompile at 0x0000...0066
 #   Oracle.sol            IOracleModule    — precompile at 0x0000...0067
+#   Swap.sol              ISwapModule      — precompile at 0x0000...0068, supplied by the scaffold
+#   IBC.sol               IIBCModule       — precompile at 0x0000...0069
 #
 # Available implementations (ready-to-use contracts):
 #   BankERC20.sol             Abstract ERC-20 backed by Bank precompile
@@ -39,6 +41,7 @@ VENDOR_DIR="$(cd "$(dirname "$0")" && pwd)/injective"
 # ──────────────────────────────────────────────────────────────────────────
 
 INTERFACES=(
+  "IBC.sol"
   # "Bank.sol"
   # "CosmosTypes.sol"
 )
@@ -56,18 +59,18 @@ if [ ${#ALL_FILES[@]} -eq 0 ]; then
   exit 0
 fi
 
-# Clean and recreate
-rm -rf "$VENDOR_DIR"
-mkdir -p "$VENDOR_DIR"
+# Download all requested files before updating the vendored copy.
+STAGING_DIR="$(mktemp -d)"
+trap 'rm -r "$STAGING_DIR"' EXIT
 
-echo "Fetching from ${REPO}@${BRANCH}..."
+echo "Fetching from ${REPO}@${REF}..."
 
 if [ ${#INTERFACES[@]} -gt 0 ]; then
   echo ""
   echo "  Interfaces:"
   for file in "${INTERFACES[@]}"; do
     printf "    %-30s" "${file}"
-    curl -sf "${BASE_URL}/${file}" -o "${VENDOR_DIR}/${file}" && echo "ok" || {
+    curl -sf "${BASE_URL}/${file}" -o "${STAGING_DIR}/${file}" && echo "ok" || {
       echo "FAILED"
       exit 1
     }
@@ -79,7 +82,7 @@ if [ ${#IMPLEMENTATIONS[@]} -gt 0 ]; then
   echo "  Implementations:"
   for file in "${IMPLEMENTATIONS[@]}"; do
     printf "    %-30s" "${file}"
-    curl -sf "${BASE_URL}/${file}" -o "${VENDOR_DIR}/${file}" && echo "ok" || {
+    curl -sf "${BASE_URL}/${file}" -o "${STAGING_DIR}/${file}" && echo "ok" || {
       echo "FAILED"
       exit 1
     }
@@ -87,10 +90,11 @@ if [ ${#IMPLEMENTATIONS[@]} -gt 0 ]; then
 fi
 
 echo ""
+mkdir -p "$VENDOR_DIR"
+for file in "${ALL_FILES[@]}"; do
+  cp "${STAGING_DIR}/${file}" "${VENDOR_DIR}/${file}"
+done
 echo "Vendored ${#ALL_FILES[@]} files to vendor/injective/"
-echo ""
-echo "Add '@injective/=vendor/injective/' to remappings in foundry.toml, then import:"
-echo "  import {IBankModule} from \"@injective/Bank.sol\";"
 echo ""
 echo "ERC-20 implementations depend on OpenZeppelin. If not installed:"
 echo "  forge install OpenZeppelin/openzeppelin-contracts"

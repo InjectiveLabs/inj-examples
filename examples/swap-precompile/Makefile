@@ -8,17 +8,20 @@ SWAP         := 0x0000000000000000000000000000000000000068
 TOKEN_IN     ?= 0xaDC7bcB5d8fe053Ef19b4E0C861c262Af6e0db60
 MARKET_ID    ?= 0x0611780ba69656949525013d947713300f56c37b6175e02f26bffa495c3208fe
 AMOUNT_IN    ?= 10000000
+TOKEN_OUT    ?= $(TOKEN_IN)
+AMOUNT_OUT   ?= $(AMOUNT_IN)
 MIN_OUT      ?= 0
 RECIPIENT    ?= $(shell cast wallet address --private-key $(PRIVATE_KEY) 2>/dev/null)
 DEADLINE     := $(shell echo $$(( $$(date +%s) + 120 )))
 
-.PHONY: help build quote quote-out swap deploy demo-swap
+.PHONY: help build quote quote-v2 quote-out swap deploy demo-swap
 
 help:
 	@echo ""
 	@echo "  make build      compile contracts"
 	@echo "  make quote      read-only quote via the precompile (cast call)"
-	@echo "  make quote-out  exact-output quote"
+	@echo "  make quote-v2   exact-input quote with projected input spent and output (v1.21)"
+	@echo "  make quote-out  exact-output quote (set TOKEN_OUT and AMOUNT_OUT)"
 	@echo "  make swap       execute swapExactInputV1 from your EOA (cast send)"
 	@echo "  make deploy     deploy SwapDemo (on-chain composition example)"
 	@echo "  make demo-swap  swap through a deployed SwapDemo (set DEMO_ADDR)"
@@ -34,9 +37,13 @@ quote:
 	cast call $(SWAP) "quoteExactInputV1(address,string,uint256)(uint256)" \
 	  $(TOKEN_IN) "$(MARKET_ID)" $(AMOUNT_IN) --rpc-url $(RPC_URL)
 
+quote-v2:
+	cast call $(SWAP) "quoteExactInputV2(address,string,uint256)(uint256,uint256)" \
+	  $(TOKEN_IN) "$(MARKET_ID)" $(AMOUNT_IN) --rpc-url $(RPC_URL)
+
 quote-out:
 	cast call $(SWAP) "quoteExactOutputV1(address,string,uint256)(uint256)" \
-	  $(TOKEN_IN) "$(MARKET_ID)" $(AMOUNT_IN) --rpc-url $(RPC_URL)
+	  $(TOKEN_OUT) "$(MARKET_ID)" $(AMOUNT_OUT) --rpc-url $(RPC_URL)
 
 swap:
 	cast send $(SWAP) "swapExactInputV1(address,string,uint256,uint256,address,uint256)(uint256)" \

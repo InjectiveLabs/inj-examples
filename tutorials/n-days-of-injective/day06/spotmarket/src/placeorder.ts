@@ -5,8 +5,10 @@ import * as dotenv from 'dotenv';
 
 async function main() {
     const result = await getMarketPrice('0x0611780ba69656949525013d947713300f56c37b6175e02f26bffa495c3208fe');
-    const bestBid = convertChainPriceToPrice(result.bestBid, 18, 6);
-    const bestAsk = convertChainPriceToPrice(result.bestAsk, 18, 6);
+    const bestAsk = Number(convertChainPriceToPrice(result.bestAsk, 18, 6));
+    if (!Number.isFinite(bestAsk) || bestAsk <= 0) {
+        throw new Error('The market has no usable sell quote.');
+    }
     const multiplier = 1.5;   // we over ask for sell orders to ensure buy execution later
     console.log('Market Mid Price Result:', convertChainPriceToPrice(result.midPrice, 18, 6));
 

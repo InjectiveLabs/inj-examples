@@ -42,6 +42,7 @@ deploy-adapter:
 
 deploy-oft:
 	@test -n "$(PRIVATE_KEY)" || (echo "Set PRIVATE_KEY in .env" && exit 1)
+	set -ea; if [ -f .env ]; then . ./.env; fi; \
 	forge script script/DeployOFT.s.sol \
 		--rpc-url "$(RPC_URL)" \
 		--private-key "$(PRIVATE_KEY)" \

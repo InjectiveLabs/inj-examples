@@ -1,8 +1,8 @@
 # Injective Precompiles Example
 
-Working example of integrating [Injective precompiles](https://docs.injective.network/developers-evm/precompiles) in a Foundry project. Includes all native precompile interfaces (Bank, Exchange, Oracle, Staking, and the Swap precompile added in v1.20.4), a Bank precompile ERC-20 token (`InjectiveToken`), and the local development environment for testing.
+Working example of integrating [Injective precompiles](https://docs.injective.network/developers-evm/precompiles) in a Foundry project. Includes the Bank, Exchange, Staking, Oracle, Swap, and IBC interfaces, a Bank-backed ERC-20 token (`InjectiveToken`), and a local development environment.
 
-The local node (`local-dev/`) is pinned to `injectivelabs/injective-core:v1.20.4`, so every precompile up to and including Swap (`0x68`) is available at `localhost:8545`. Override with `INJ_IMAGE=...` when running `setup.sh`. Note the swap allowlist starts empty on a fresh chain (`SwapParams` defaults to enabled with no markets); launch a spot market and allowlist it via `MsgUpdateSwapParams` before swapping. See the focused [swap precompile example](../swap-precompile/) for the interface and quote/swap flow.
+Local setup requires Docker, Docker Compose, and `jq`. It uses `injectivelabs/injective-core:v1.21.0` and serves EVM JSON-RPC at `localhost:8545`. If you override `INJ_IMAGE`, use the same value for `make local-init` and `make local-start`. A fresh chain starts with an empty swap allowlist. The [swap demo](../swap-precompile/) shows how to launch and allowlist a local market before swapping.
 
 This project was scaffolded from the [`foundry` template](../../templates/foundry/) and extended with precompile contracts.
 
@@ -52,18 +52,19 @@ All native Injective precompile interfaces are vendored in `vendor/injective/` a
 | `Staking.sol` | `IStakingModule` | `0x0000...0066` | Validator staking via [`x/staking`](https://docs.injective.network/developers-evm/staking-precompile) |
 | `Oracle.sol` | `IOracleModule` | `0x0000...0067` | Price feeds via [`x/oracle`](https://docs.injective.network/developers-evm/oracle-precompile) |
 | `Swap.sol` | `ISwapModule` | `0x0000...0068` | Native spot swaps against the orderbook, added in v1.20.4. See the [swap precompile example](https://github.com/InjectiveLabs/inj-examples/tree/main/examples/swap-precompile) |
+| `IBC.sol` | `IIBCModule` | `0x0000...0069` | Outbound ICS-20 transfers from the EVM. See the [IBC precompile reference](https://docs.injective.network/developers-evm/ibc-precompile). |
 
 Supporting files: `CosmosTypes.sol` (Cosmos.Coin struct), `ExchangeTypes.sol` (Exchange enums and fixed-point types).
 
 Bank precompile implementations: `BankERC20.sol` (abstract ERC-20 backed by Bank), `MintBurnBankERC20.sol` (owner-controlled mint/burn).
 
-To update vendored contracts to the latest upstream version:
+The vendored contracts use `solidity-contracts@v1.21.0-rc.1`. To refresh that revision or select another verified tag with `SOLIDITY_CONTRACTS_REF`, run:
 
 ```bash
 make vendor    # runs vendor/fetch.sh
 ```
 
-`Swap.sol` is not yet published in the upstream [solidity-contracts](https://github.com/InjectiveLabs/solidity-contracts) repo, so it is maintained locally and preserved by `fetch.sh` across re-vendors.
+`Swap.sol` follows the six-method v1.21 interface in the [swap demo](../swap-precompile/src/ISwapModule.sol) and stays in place when the upstream contracts are refreshed.
 
 ## Integration Guide
 

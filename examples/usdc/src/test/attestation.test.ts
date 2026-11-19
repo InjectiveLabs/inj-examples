@@ -10,7 +10,7 @@
  *   - reset functionality
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useAttestation } from '../hooks/useAttestation'
 
@@ -19,7 +19,7 @@ import { useAttestation } from '../hooks/useAttestation'
 // ─────────────────────────────────────────────────────────────
 const MOCK_TX_HASH = '0xabc123def456abc123def456abc123def456abc123def456abc123def4560000'
 const MOCK_MESSAGE = '0x000000000000000000000024'
-const MOCK_ATTESTATION = '0xsignature000000000000000000000000'
+const MOCK_ATTESTATION = '0xaabbccdd'
 
 function mockFetchOnce(responseBody: unknown, status = 200) {
   vi.stubGlobal(
@@ -125,8 +125,17 @@ describe('useAttestation Hook', () => {
     expect(result.current.error).toBe('Network failure')
   })
 
-  it('transitions to "error" when API returns a non-2xx status', async () => {
-    mockFetchOnce({ error: 'not found' }, 404)
+  it('continues polling when Iris has not indexed the burn yet', async () => {
+    mockFetchOnce({}, 404)
+    const { result } = renderHook(() => useAttestation())
+
+    await act(() => result.current.fetchAttestation(MOCK_TX_HASH))
+
+    expect(result.current.status).toBe('pending_confirmations')
+  })
+
+  it('surfaces an API error for other non-success responses', async () => {
+    mockFetchOnce({}, 500)
 
     const { result } = renderHook(() => useAttestation())
 
@@ -135,7 +144,7 @@ describe('useAttestation Hook', () => {
     })
 
     await waitFor(() => expect(result.current.status).toBe('error'))
-    expect(result.current.error).toMatch(/404/)
+    expect(result.current.error).toMatch(/500/)
   })
 
   // ── 5. Reset ────────────────────────────────────────────────

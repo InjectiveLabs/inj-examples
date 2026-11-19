@@ -7,7 +7,7 @@ Includes a local development environment with a dockerized Injective node and bl
 ## Prerequisites
 
 - [Foundry](https://book.getfoundry.sh/getting-started/installation) (the [docs](https://docs.injective.network/developers-evm/smart-contracts/compile-foundry) use v1.2.3-stable; any recent version works)
-- [Docker](https://docs.docker.com/get-docker/) and Docker Compose (for local devnet)
+- [Docker](https://docs.docker.com/get-docker/), Docker Compose, and `jq` (for local devnet)
 - Testnet INJ from the [faucet](https://testnet.faucet.injective.network/) (for testnet deployment)
 
 ## Quick Start
@@ -59,7 +59,7 @@ Run a real Injective node locally with a block explorer. This gives you the full
 
 ### First-time setup
 
-The init script runs entirely inside Docker — no local `injectived` binary needed.
+The init script uses the `injectivelabs/injective-core:v1.21.0` image for chain commands and `jq` for genesis configuration. If you override `INJ_IMAGE`, use the same value for `make local-init` and `make local-start`.
 
 ```bash
 make local-init      # pulls Docker image, initializes chain with pre-funded dev accounts (one-time)
@@ -118,26 +118,19 @@ Injective exposes native chain modules to Solidity through [precompiled contract
 | [Exchange](https://docs.injective.network/developers-evm/exchange-precompile) | `0x0000...0065` | Order book trading via `x/exchange` |
 | [Staking](https://docs.injective.network/developers-evm/staking-precompile) | `0x0000...0066` | Validator staking via `x/staking` |
 | [Oracle](https://docs.injective.network/developers-evm/oracle-precompile) | `0x0000...0067` | Price feeds via `x/oracle` |
+| [Swap](https://docs.injective.network/developers-evm/swap-precompile) | `0x0000...0068` | Spot swaps against the native order book |
+| [IBC](https://docs.injective.network/developers-evm/ibc-precompile) | `0x0000...0069` | Outbound ICS-20 transfers and inbound EVM hooks |
 
 ### Vendoring precompile interfaces
 
-The official Solidity interfaces live in [InjectiveLabs/solidity-contracts](https://github.com/InjectiveLabs/solidity-contracts). Because that repo is a development monorepo with transitive dependencies that break `forge install`, this template includes `vendor/fetch.sh` to pull only the files you need.
+`make foundry` copies the v1.21 Swap and IBC interfaces into the generated project’s `vendor/injective/` directory. The template already includes the `@injective/` remapping, so both interfaces are available as soon as the project is created:
 
-To add precompiles to your project:
+```solidity
+import {ISwapModule} from "@injective/Swap.sol";
+import {IIBCModule} from "@injective/IBC.sol";
+```
 
-1. Edit `vendor/fetch.sh` — uncomment or add contracts to the `INTERFACES` and `IMPLEMENTATIONS` arrays
-2. Run `./vendor/fetch.sh`
-3. Add the remapping to `foundry.toml`:
-   ```toml
-   remappings = [
-     '@injective/=vendor/injective/',
-     '@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/',
-   ]
-   ```
-4. Import in your contracts:
-   ```solidity
-   import {IBankModule} from "@injective/Bank.sol";
-   ```
+The [swap demo](https://github.com/InjectiveLabs/inj-examples/tree/main/examples/swap-precompile) and [IBC demo](https://github.com/InjectiveLabs/inj-examples/tree/main/examples/ibc-precompile) show how to use these interfaces. To add other contracts from [solidity-contracts](https://github.com/InjectiveLabs/solidity-contracts), select them in `vendor/fetch.sh` and run the script. The script can refresh `IBC.sol` and preserves the scaffold’s `Swap.sol`.
 
 ### Deploying precompile contracts
 
