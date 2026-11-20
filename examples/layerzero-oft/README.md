@@ -31,7 +31,8 @@ An existing token with a home elsewhere, for example an Ethereum token already o
 
 ## Prerequisites
 
-- `forge` and `cast` (Foundry), `injectived`, `jq`, `python3`
+- `forge` and `cast` (Foundry), `jq`, and `python3`
+- The [published Testnet `injectived` binary](../../README.md#install-the-published-binary), installed on the machine running this example. The native token and verification scripts call it from `PATH`.
 - A funded testnet key. The same private key is used on the EVM side (`0x...`) and the native side (`inj1...`). Faucet: https://testnet.faucet.injective.network/
 - For the Solana half: the LayerZero `oft-solana` example checked out separately, with its own prerequisites (Rust, Anchor, Solana CLI, pnpm). https://github.com/LayerZero-Labs/devtools/tree/main/examples/oft-solana
 
@@ -40,7 +41,7 @@ forge install InjectiveLabs/solidity-contracts@v1.21.0-rc.1
 forge install foundry-rs/forge-std
 cp .env.example .env     # fill in keys and addresses
 injectived keys unsafe-import-eth-key $INJ_KEY_NAME <PRIVATE_KEY without 0x> --keyring-backend file
-make build
+forge build             # compile the OFT Solidity contracts
 ```
 
 `solidity-contracts` carries LayerZero and OpenZeppelin as its own submodules, which is why one install covers every import. `via_ir = true` in `foundry.toml` is required: the BankERC20 backed OFT constructor forwards five arguments to two base constructors and the legacy codegen reports "Stack too deep".

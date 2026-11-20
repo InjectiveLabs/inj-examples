@@ -18,7 +18,7 @@ forge install OpenZeppelin/openzeppelin-contracts
 
 cp .env.example .env          # configure RPC_URL and PRIVATE_KEY
 
-make build                     # compile contracts
+forge build                    # compile the template's Solidity contracts
 make test                      # run tests (Foundry in-memory EVM)
 ```
 
@@ -30,9 +30,9 @@ make test                      # run tests (Foundry in-memory EVM)
 ├── test/                      Foundry test suite
 │   └── Counter.t.sol
 ├── script/                    Deploy scripts
-│   └── Deploy.s.sol           Programmatic deployments — add contracts here
+│   └── Deploy.s.sol           Programmatic deployments (add contracts here)
 ├── vendor/                    Vendored Injective precompile contracts
-│   └── fetch.sh               Fetch script — pulls contracts from InjectiveLabs/solidity-contracts
+│   └── fetch.sh               Fetches contracts from InjectiveLabs/solidity-contracts
 ├── local-dev/                 Local development environment
 │   ├── docker-compose.yml     Injective node + Blockscout explorer
 │   └── setup.sh               One-time chain initialization
@@ -48,18 +48,18 @@ Copy `.env.example` to `.env` and set your values:
 | Variable | Required for | Default |
 |---|---|---|
 | `RPC_URL` | testnet targets | `https://k8s.testnet.json-rpc.injective.network/` ([docs](https://docs.injective.network/developers-evm/network-information)) |
-| `PRIVATE_KEY` | deploy targets | — |
-| `CONTRACT_ADDRESS` | verify targets | — |
+| `PRIVATE_KEY` | deploy targets | None |
+| `CONTRACT_ADDRESS` | verify targets | None |
 | `VERIFIER_URL` | verify targets | `https://testnet.blockscout-api.injective.network/api/` ([docs](https://docs.injective.network/developers-evm/smart-contracts/verify-foundry)) |
 | `GAS_PRICE` | deploy targets | `160000000` ([docs](https://docs.injective.network/developers-evm/smart-contracts/deploy-foundry)) |
 
 ## Local Development
 
-Run a real Injective node locally with a block explorer. This gives you the full chain environment — precompiles, Cosmos module interop, and real block production.
+Run a real Injective node locally with a block explorer. This gives you the full chain environment, including precompiles, Cosmos module interop, and real block production.
 
 ### First-time setup
 
-The init script uses the `injectivelabs/injective-core:v1.21.0` image for chain commands and `jq` for genesis configuration. If you override `INJ_IMAGE`, use the same value for `make local-init` and `make local-start`.
+The init script pulls the published `injectivelabs/injective-core:v1.21.0` image and uses `jq` for genesis configuration. If you override `INJ_IMAGE`, use the same value for `make local-init` and `make local-start`.
 
 ```bash
 make local-init      # pulls Docker image, initializes chain with pre-funded dev accounts (one-time)
@@ -134,7 +134,7 @@ The [swap demo](https://github.com/InjectiveLabs/inj-examples/tree/main/examples
 
 ### Deploying precompile contracts
 
-Contracts that call precompiles **cannot** use `forge script` — Foundry's in-memory EVM doesn't have Injective precompiles. Use `forge create` instead, which skips simulation and submits directly:
+Contracts that call precompiles **cannot** use `forge script` because Foundry's in-memory EVM doesn't have Injective precompiles. Use `forge create` to skip simulation and submit directly.
 
 ```bash
 forge create src/YourToken.sol:YourToken \
@@ -147,7 +147,7 @@ forge create src/YourToken.sol:YourToken \
   --broadcast
 ```
 
-`forge test` has the same limitation — tests that call precompiles will fail with "call to non-contract address". Test precompile contracts against the local devnet or testnet.
+`forge test` has the same limitation. Tests that call precompiles will fail with "call to non-contract address". Test precompile contracts against the local devnet or testnet.
 
 For a working example with the Bank precompile, see [`examples/precompiles`](../../examples/precompiles/).
 
@@ -155,10 +155,10 @@ For a working example with the Bank precompile, see [`examples/precompiles`](../
 
 `foundry.toml` is configured for Injective:
 
-- **Solidity 0.8.28** — matches the [Injective docs](https://docs.injective.network/developers-evm/smart-contracts/compile-foundry)
-- **EVM version: cancun** — Injective enables Shanghai, Cancun, and Prague from genesis ([source](https://github.com/InjectiveLabs/injective-core/blob/master/injective-chain/modules/evm/types/chain_config.go))
-- **`--legacy` transactions** — required on Injective ([docs](https://docs.injective.network/developers-evm/smart-contracts/deploy-foundry))
-- **Gas price `160000000`** — standard Injective minimum ([docs](https://docs.injective.network/developers-evm/network-information))
+- **Solidity 0.8.28** matches the version in the [Injective docs](https://docs.injective.network/developers-evm/smart-contracts/compile-foundry).
+- **EVM version: cancun**
+- **`--legacy` transactions** are required on Injective. [Deployment docs](https://docs.injective.network/developers-evm/smart-contracts/deploy-foundry)
+- **Gas price `160000000`** is the standard Injective minimum. [Network information](https://docs.injective.network/developers-evm/network-information)
 
 ## Network Reference
 
@@ -167,7 +167,7 @@ For a working example with the Bank precompile, see [`examples/precompiles`](../
 | Chain ID | `1439` | `1776` |
 | JSON-RPC | `https://k8s.testnet.json-rpc.injective.network/` | `https://sentry.evm-rpc.injective.network/` |
 | Explorer | `https://testnet.blockscout.injective.network/` | `https://blockscout.injective.network/` |
-| Faucet | `https://testnet.faucet.injective.network/` | — |
+| Faucet | `https://testnet.faucet.injective.network/` | None |
 
 ## License
 

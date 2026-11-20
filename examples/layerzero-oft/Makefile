@@ -11,7 +11,7 @@ CHAIN_ID ?= injective-888
 help:
 	@echo ""
 	@echo "  Build"
-	@echo "    make build                Compile InjectiveOFT and InjectiveOFTAdapter"
+	@echo "    make build                Compile the OFT Solidity contracts with Foundry"
 	@echo ""
 	@echo "  Path A: native first (tokenfactory token, then an adapter)"
 	@echo "    make create-native-token  One native tx: create denom + mint + create token pair"

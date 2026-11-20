@@ -31,7 +31,7 @@ Ethereum Sepolia                    Injective Testnet
 | Tool | Check | Install |
 |------|-------|---------|
 | Foundry (forge, cast) | `forge --version` | [getfoundry.sh](https://getfoundry.sh) |
-| injectived | `injectived version` | [GitHub releases](https://github.com/InjectiveFoundation/injective-core/releases) |
+| injectived | `injectived version` | Install the [published Testnet binary](../../README.md#install-the-published-binary) on the machine running this example. The token pair script calls `injectived` from `PATH`. |
 | jq | `jq --version` | `brew install jq` or [stedolan.github.io/jq](https://stedolan.github.io/jq/) |
 
 You also need:
@@ -52,8 +52,8 @@ forge install foundry-rs/forge-std --no-git
 cp .env.example .env
 # Edit .env: set PRIVATE_KEY and WALLET_ADDRESS
 
-# Build and test
-make build
+# Compile and test the ACME Solidity contract
+forge build
 make test
 ```
 

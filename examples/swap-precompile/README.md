@@ -100,7 +100,7 @@ The TypeScript CLI expects the testnet INJ/Circle USDC pair. To adapt it, change
 
 ## Foundry prerequisites
 
-- Install [Foundry](https://getfoundry.sh/introduction/installation/) and `jq`, then clone [inj-examples](https://github.com/InjectiveLabs/inj-examples). From the clone, enter `examples/swap-precompile` and run `make build`. The example has no Solidity dependencies to install.
+- Install [Foundry](https://getfoundry.sh/introduction/installation/) and `jq`, then clone [inj-examples](https://github.com/InjectiveLabs/inj-examples). From `examples/swap-precompile`, run `forge build` if you plan to deploy `SwapDemo`. This compiles the example's Solidity files. The quote commands only need `cast` and an Injective RPC endpoint.
 - For transactions, fund your testnet account with INJ for gas and the input token for the route. See the [testnet faucets and explorers](https://chain.injective.network/testnet). Quotes need neither an account nor a balance.
 
 The V2 methods, execution for a target output, and resolution of native EVM tokens under the MultiVM Token Standard (MTS) are available on v1.21, including testnet build `v1.21.0-beta`. The original V1 methods quote and execute swaps with an input budget and quote the input required for a target output. They are available from v1.20.4.
@@ -216,7 +216,7 @@ For contract composition, the contract holds the input funds and calls the preco
 
 ## Full localnet demo
 
-Install [`injectived` v1.21.0](https://github.com/InjectiveFoundation/injective-core/releases/tag/v1.21.0-1794954936), `cast`, and Python 3, then run:
+On Linux x86_64, install the [published `injectived` v1.21.0 binary](../../README.md#install-the-published-binary), Foundry's `cast`, and Python 3. Confirm `injectived version` reports v1.21.0, then run:
 
 ```bash
 SWAP_API_VERSION=2 ./localnet-demo.sh
@@ -225,3 +225,5 @@ SWAP_API_VERSION=2 ./localnet-demo.sh
 The script initializes a fresh local chain, creates a TokenFactory USDC token and its ERC20 pair, lists and allowlists an INJ/USDC spot market, posts liquidity, and runs swaps with an input budget through V2 and swaps with a target output. It uses disposable local keys. It creates a temporary chain home by default and stops its node on exit. Pass a new directory as the first argument to choose the chain home. The local node needs ports 26657, 8545, and 9900 available. Running without `SWAP_API_VERSION=2` keeps the original V1 demo for v1.20.4 and later.
 
 Standard Foundry's simulated EVM lacks Injective's native precompiles. Use `cast` against an Injective node for simulation and execution. For the protocol reference, see the [Swap Precompile docs](https://docs.injective.network/developers-evm/swap-precompile).
+
+For a Docker-based local node, follow the [precompiles local development setup](../precompiles/README.md#local-development). To try the Makefile swap targets against that node, seed and allowlist a market, then set `RPC_URL=http://localhost:8545` and use that market's ID and token addresses.

@@ -4,7 +4,7 @@ This module integrates the [Injective MCP Server](https://github.com/InjectiveLa
 
 ## What is MCP?
 
-[MCP (Model Context Protocol)](https://modelcontextprotocol.io/introduction) is an open standard that lets AI assistants connect to external tools and data sources. The Injective MCP server exposes Injective's capabilities — trading, queries, transfers, EVM transactions — as MCP tools that any compatible AI client can use.
+[MCP (Model Context Protocol)](https://modelcontextprotocol.io/introduction) is an open standard that lets AI assistants connect to external tools and data sources. The Injective MCP server provides tools for trading, queries, transfers, and EVM transactions to compatible AI clients.
 
 ## Quick Setup
 

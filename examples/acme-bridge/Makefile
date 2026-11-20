@@ -10,7 +10,7 @@ GAS_PRICE         ?= 160000000
 help:
 	@echo ""
 	@echo "  Build & Test"
-	@echo "    make build              Compile ACME contract"
+	@echo "    make build              Compile the ACME Solidity contract with Foundry"
 	@echo "    make test               Run test suite"
 	@echo ""
 	@echo "  Deploy (Sepolia)"

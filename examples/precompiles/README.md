@@ -2,7 +2,7 @@
 
 Working example of integrating [Injective precompiles](https://docs.injective.network/developers-evm/precompiles) in a Foundry project. Includes the Bank, Exchange, Staking, Oracle, Swap, and IBC interfaces, a Bank-backed ERC-20 token (`InjectiveToken`), and a local development environment.
 
-Local setup requires Docker, Docker Compose, and `jq`. It uses `injectivelabs/injective-core:v1.21.0` and serves EVM JSON-RPC at `localhost:8545`. If you override `INJ_IMAGE`, use the same value for `make local-init` and `make local-start`. A fresh chain starts with an empty swap allowlist. The [swap demo](../swap-precompile/) shows how to launch and allowlist a local market before swapping.
+Local setup requires Docker, Docker Compose, and `jq`. `make local-init` pulls the published `injectivelabs/injective-core:v1.21.0` image, and `make local-start` serves EVM JSON-RPC at `localhost:8545`. If you override `INJ_IMAGE`, use the same value for both commands. A fresh chain starts with an empty swap allowlist. The [swap demo](../swap-precompile/) shows how to launch and allowlist a local market before swapping.
 
 This project was scaffolded from the [`foundry` template](../../templates/foundry/) and extended with precompile contracts.
 
@@ -15,8 +15,8 @@ forge install OpenZeppelin/openzeppelin-contracts
 
 cp .env.example .env
 
-# Build (compiles all contracts including precompile-based ones)
-make build
+# Compile the example Solidity contracts
+forge build
 
 # Run standard EVM tests (Counter only, precompile contracts need a real node)
 make test

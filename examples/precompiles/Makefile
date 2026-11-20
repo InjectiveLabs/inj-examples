@@ -14,11 +14,11 @@ DEPLOY_SCRIPT    := script/Deploy.s.sol
 help:
 	@echo ""
 	@echo "  Build & Test"
-	@echo "    make build                Compile contracts"
+	@echo "    make build                Compile example Solidity contracts with Foundry"
 	@echo "    make test                 Run test suite (in-memory EVM, standard contracts only)"
 	@echo ""
 	@echo "  Local Devnet (Injective node + Blockscout explorer)"
-	@echo "    make local-init           Initialize local chain (one-time)"
+	@echo "    make local-init           Pull the published node image and initialize the chain"
 	@echo "    make local-start          Start node and explorer"
 	@echo "    make local-stop           Stop all local services"
 	@echo "    make local-clean          Remove chain data and explorer DB"

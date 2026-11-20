@@ -22,32 +22,14 @@ You will learn how to:
 
 ## Installation
 
-Before installation, make sure your system meets the following requirements:
+### With a release binary
 
-Platform compatibility guide
-Check out this table to see which platform is supported to run injectived CLI:
-
-| Platform	      | Pre-Built Binaries |	Docker	| From Source |
-|-----------------|--------------------|----------|-------------|
-| macOS (M1/ARM)	| ❌	                 | ✅	     | ✅          |
-| macOS (Intel)	  | ❌	                 | ✅	     | ✅          |
-| Windows (x86_64)| ❌	                 | ✅	     | ❌          |
-| Windows (ARM)	  | ❌	                 | ✅	     | ❌          |
-| Linux (x86_64)	| ✅	                 | ✅	     | ✅          |
-| Linux (ARM)	    | ❌	                 | ✅       | ✅          |
-​
-### With pre-built binaries
-
-```bash
-wget https://github.com/InjectiveLabs/injective-chain-releases/releases/download/v1.17.1-1764720946/linux-amd64.zip
-unzip linux-amd64.zip
-sudo mv injectived peggo /usr/bin
-sudo mv libwasmvm.x86_64.so /usr/lib
-```
+On Linux x86_64, follow the [published binary instructions](../../../../README.md#install-the-published-binary) to choose a release for your network and install `injectived` and its Wasm runtime library.
 
 ### With Docker
 
 ```bash
+docker pull injectivelabs/injective-core:v1.21.0
 docker run -it --rm injectivelabs/injective-core:v1.21.0 injectived version
 ```
 
@@ -62,8 +44,6 @@ alias injectived='docker run -it --rm -v ~/.injectived:/root/.injectived injecti
 > To make it permanent or available from other shells,
 > add it to your `.bashrc`, `.zshrc`, or equivalent files.
 
-For other installation methods (pre-built binaries or building from source), see the [official documentation](https://docs.injective.network/guides/installation/).
-
 ## Check installation
 
 Run following commands to check if the installation is complete:
@@ -72,12 +52,7 @@ Run following commands to check if the installation is complete:
 injectived version
 ```
 
-You should get the output similar to the following:
-
-```text
-Version v1.17.1 (99ae041)
-Compiled at 20251202-2355 using Go go1.23.9 (amd64)
-```
+Confirm the output matches the release version you selected.
 
 ## Create a wallet
 

@@ -3,7 +3,7 @@
 # End-to-end swap precompile demo on a fresh localnet:
 # chain init -> USDC token -> ERC20 pair -> spot market -> allowlist -> liquidity -> swap via 0x68.
 #
-# Requirements: injectived (v1.20.4+), cast (Foundry), python3.
+# Requirements: injectived v1.21.0 from Injective Foundation releases, cast (Foundry), python3.
 # Usage: [SWAP_API_VERSION=2] ./localnet-demo.sh [new_home_dir]
 set -euo pipefail
 
@@ -12,6 +12,11 @@ case "$SWAP_API_VERSION" in
   1|2) ;;
   *) echo "SWAP_API_VERSION must be 1 or 2" >&2; exit 1 ;;
 esac
+
+if ! command -v injectived >/dev/null; then
+  echo "Install the published injectived binary on PATH. See the Full localnet demo section in README.md." >&2
+  exit 1
+fi
 
 if [ "$#" -eq 0 ]; then
   HOME_DIR=$(mktemp -d "${TMPDIR:-/tmp}/injective-swap-demo.XXXXXX")

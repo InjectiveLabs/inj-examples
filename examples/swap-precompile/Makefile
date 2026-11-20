@@ -18,7 +18,7 @@ DEADLINE     := $(shell echo $$(( $$(date +%s) + 120 )))
 
 help:
 	@echo ""
-	@echo "  make build      compile contracts"
+	@echo "  make build      compile example Solidity contracts with Foundry"
 	@echo "  make quote      read-only quote via the precompile (cast call)"
 	@echo "  make quote-v2   exact-input quote with projected input spent and output (v1.21)"
 	@echo "  make quote-out  exact-output quote (set TOKEN_OUT and AMOUNT_OUT)"
