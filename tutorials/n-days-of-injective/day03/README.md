@@ -286,8 +286,8 @@ Because of the transaction we just did, it has a new value.
 
 To wrap up, let's solidify the difference between these two operations.
 
-Read operations are like looking at a public bulletin board—anyone can do it,
-it's free, and you don't need permission or a signature.
+Read operations are like looking at a public bulletin board. Anyone can do it for
+free, without permission or a signature.
 
 Write operations are different from read operations,
 because you are updating the blockchain state.

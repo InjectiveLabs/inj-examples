@@ -37,7 +37,7 @@ cp .env.example .env
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) — you're ready to go!
+Open [http://localhost:5173](http://localhost:5173) to use the app.
 
 ---
 
@@ -47,9 +47,9 @@ Open [http://localhost:5173](http://localhost:5173) — you're ready to go!
 
 A simple custodial vault on **Injective EVM Testnet**:
 
-- ✅ **Deposit USDC** — users deposit Circle USDC into the vault
-- ✅ **Withdraw USDC** — users can withdraw their own funds at any time
-- ✅ **View balance** — see total USDC held by the vault
+- ✅ **Deposit USDC** into the vault.
+- ✅ **Withdraw USDC** from your own funds at any time.
+- ✅ **View balance** to see the total USDC held by the vault.
 
 **Deployed Contract:**
 - **Address:** `0xc79efba3814eedb4b8b85651bc6668198e46ac5a`
@@ -58,11 +58,11 @@ A simple custodial vault on **Injective EVM Testnet**:
 
 ### Frontend Features
 
-- **Wallet connection** — MetaMask, WalletConnect, Coinbase Wallet via wagmi
-- **Network detection** — auto-detects Injective Testnet
-- **Deposit/Withdraw UI** — simple forms for vault interactions
-- **Real-time balance** — shows wallet balance, deposited balance, and total vault balance
-- **Transaction history** — track your deposits and withdrawals
+- **Wallet connection** supports MetaMask, WalletConnect, and Coinbase Wallet via wagmi.
+- **Network detection** automatically detects Injective Testnet.
+- **Deposit and withdrawal forms** let users interact with the vault.
+- **Real-time balances** show the wallet balance, deposited balance, and total vault balance.
+- **Transaction history** tracks deposits and withdrawals.
 
 ---
 
@@ -99,7 +99,7 @@ VITE_VAULT_ADDRESS=0xc79efba3814eedb4b8b85651bc6668198e46ac5a
 # VITE_USDC_ADDRESS=0x0C382e685bbeeFE5d3d9C29e29E341fEE8E84C5d
 ```
 
-The vault contract is **already deployed** — you don't need to deploy anything yourself!
+The vault contract is **already deployed** and ready to use.
 
 ---
 
@@ -138,7 +138,7 @@ Visit [faucet.circle.com](https://faucet.circle.com/):
 2. Contract transfers USDC back to user
 3. Balance updates instantly
 
-**No admin fees, no lock-up period** — users have full control over their funds.
+**No admin fees or lock-up period.** Users have full control over their funds.
 
 ---
 
@@ -172,7 +172,7 @@ function getUserDeposit(address user) external view returns (uint256);
 
 - ✅ ReentrancyGuard on all state-changing functions
 - ✅ SafeERC20 for token transfers
-- ✅ No admin/owner — fully permissionless
+- ✅ Fully permissionless, with no admin or owner
 - ✅ Users can only withdraw their own funds
 
 ---
@@ -201,7 +201,7 @@ The vault contract is **already deployed** for you. If you want to deploy your o
 cd contracts
 npm install
 
-# Deploy (needs a funded wallet — add PRIVATE_KEY to contracts/.env)
+# Deploy with a funded wallet. Add PRIVATE_KEY to contracts/.env.
 npx hardhat run scripts/deploy.ts --network injectiveTestnet
 ```
 
